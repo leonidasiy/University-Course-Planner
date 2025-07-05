@@ -4,6 +4,7 @@ import { Semester, Course } from '../types/schedule';
 
 interface SemesterListProps {
   semesters: Semester[];
+  availableCourses: Course[];
   onRemoveSemester: (semesterId: string) => void;
   onAddCourse: (semesterId: string, course: Course) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
@@ -12,6 +13,7 @@ interface SemesterListProps {
 
 export function SemesterList({
   semesters,
+  availableCourses,
   onRemoveSemester,
   onAddCourse,
   onRemoveCourse,
@@ -34,6 +36,7 @@ export function SemesterList({
           <SemesterCard
             key={semester.id}
             semester={semester}
+            availableCourses={availableCourses}
             onRemove={onRemoveSemester}
             onAddCourse={onAddCourse}
             onRemoveCourse={onRemoveCourse}

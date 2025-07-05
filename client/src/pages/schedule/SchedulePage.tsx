@@ -35,6 +35,7 @@ export function SchedulePage() {
         <div className="lg:col-span-2">
           <SemesterList
             semesters={semesters}
+            availableCourses={availableCourses}
             onRemoveSemester={removeSemester}
             onAddCourse={addCourseToSemester}
             onRemoveCourse={removeCourseFromSemester}

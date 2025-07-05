@@ -2,12 +2,14 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Combobox } from '@/components/ui/combobox';
 import { CourseItem } from './CourseItem';
 import { Semester, Course } from '../types/schedule';
-import { Trash2, Calendar, Snowflake, Sun, Flower, Leaf } from 'lucide-react';
+import { Trash2, Calendar, Snowflake, Sun, Flower, Leaf, Plus } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: Semester;
+  availableCourses: Course[];
   onRemove: (semesterId: string) => void;
   onAddCourse: (semesterId: string, course: Course) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
@@ -46,11 +48,14 @@ const getSemesterColor = (type: string) => {
 
 export function SemesterCard({
   semester,
+  availableCourses,
   onRemove,
   onAddCourse,
   onRemoveCourse,
   onMoveCourse
 }: SemesterCardProps) {
+  const [selectedCourseId, setSelectedCourseId] = React.useState<string>('');
+
   const totalCredits = semester.courses.reduce((sum, course) => sum + course.credits, 0);
   const dsctCredits = semester.courses
     .filter(course => course.majorRequirement === 'DSCT')
@@ -58,6 +63,11 @@ export function SemesterCard({
   const coscCredits = semester.courses
     .filter(course => course.majorRequirement === 'COSC')
     .reduce((sum, course) => sum + course.credits, 0);
+
+  const courseOptions = availableCourses.map(course => ({
+    value: course.id,
+    label: `${course.code} - ${course.name} (${course.credits} credits)`
+  }));
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -80,6 +90,16 @@ export function SemesterCard({
 
   const handleRemoveClick = () => {
     onRemove(semester.id);
+  };
+
+  const handleAddCourseFromDropdown = () => {
+    if (selectedCourseId) {
+      const course = availableCourses.find(c => c.id === selectedCourseId);
+      if (course) {
+        onAddCourse(semester.id, course);
+        setSelectedCourseId('');
+      }
+    }
   };
 
   return (
@@ -120,10 +140,35 @@ export function SemesterCard({
         </div>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="space-y-4">
+        {availableCourses.length > 0 && (
+          <div className="flex gap-2">
+            <Combobox
+              options={courseOptions}
+              value={selectedCourseId}
+              onValueChange={setSelectedCourseId}
+              placeholder="Select a course to add..."
+              searchPlaceholder="Search courses..."
+              emptyText="No courses found."
+              className="flex-1"
+            />
+            <Button
+              onClick={handleAddCourseFromDropdown}
+              disabled={!selectedCourseId}
+              size="sm"
+              className="shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         {semester.courses.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-muted rounded-lg">
-            Drag courses here to add them to this semester
+            {availableCourses.length > 0 
+              ? "Add courses using the dropdown above or drag courses here"
+              : "No courses available to add"
+            }
           </div>
         ) : (
           <div className="space-y-2">

@@ -103,7 +103,7 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse }: CourseLi
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="DSCT">DSCT (Data Science Computing Technology)</SelectItem>
+                      <SelectItem value="DSCT">DSCT (Data Science and Technology)</SelectItem>
                       <SelectItem value="COSC">COSC (Computer Science)</SelectItem>
                     </SelectContent>
                   </Select>
