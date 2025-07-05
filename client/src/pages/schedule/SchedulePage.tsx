@@ -16,7 +16,9 @@ export function SchedulePage() {
     addCourseToLibrary,
     removeCourseFromLibrary,
     totalCredits,
-    completedCredits
+    completedCredits,
+    dsctCredits,
+    coscCredits
   } = useSchedule();
 
   return (
@@ -24,6 +26,8 @@ export function SchedulePage() {
       <ScheduleHeader
         totalCredits={totalCredits}
         completedCredits={completedCredits}
+        dsctCredits={dsctCredits}
+        coscCredits={coscCredits}
         onAddSemester={addSemester}
       />
       

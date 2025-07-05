@@ -32,6 +32,21 @@ export function CourseItem({ course, semesterId, onRemove, onRemoveFromLibrary }
     }
   };
 
+  const getMajorRequirementBadge = () => {
+    if (!course.majorRequirement) return null;
+    
+    const colors = {
+      DSCT: 'text-blue-600 border-blue-600 bg-blue-50',
+      COSC: 'text-green-600 border-green-600 bg-green-50'
+    };
+
+    return (
+      <Badge variant="outline" className={colors[course.majorRequirement]}>
+        {course.majorRequirement}
+      </Badge>
+    );
+  };
+
   return (
     <Card
       draggable
@@ -49,6 +64,7 @@ export function CourseItem({ course, semesterId, onRemove, onRemoveFromLibrary }
           </div>
           
           <div className="flex items-center gap-2">
+            {getMajorRequirementBadge()}
             <Badge variant="outline">
               {course.credits} credits
             </Badge>

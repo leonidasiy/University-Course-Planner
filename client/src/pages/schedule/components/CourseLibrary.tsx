@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { Course } from '../types/schedule';
@@ -19,7 +20,8 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse }: CourseLi
   const [newCourse, setNewCourse] = React.useState({
     code: '',
     name: '',
-    credits: 3
+    credits: 3,
+    majorRequirement: null as 'DSCT' | 'COSC' | null
   });
 
   const handleAddCourse = () => {
@@ -28,10 +30,11 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse }: CourseLi
         id: Date.now().toString(),
         code: newCourse.code,
         name: newCourse.name,
-        credits: newCourse.credits
+        credits: newCourse.credits,
+        majorRequirement: newCourse.majorRequirement
       };
       onAddCourse(course);
-      setNewCourse({ code: '', name: '', credits: 3 });
+      setNewCourse({ code: '', name: '', credits: 3, majorRequirement: null });
       setIsDialogOpen(false);
     }
   };
@@ -85,6 +88,25 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse }: CourseLi
                     value={newCourse.credits}
                     onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 3 })}
                   />
+                </div>
+                <div>
+                  <Label htmlFor="major-requirement">Major Requirement</Label>
+                  <Select 
+                    value={newCourse.majorRequirement || ''} 
+                    onValueChange={(value) => setNewCourse({ 
+                      ...newCourse, 
+                      majorRequirement: value === '' ? null : value as 'DSCT' | 'COSC' 
+                    })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select major requirement (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="DSCT">DSCT (Data Science Computing Technology)</SelectItem>
+                      <SelectItem value="COSC">COSC (Computer Science)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button onClick={handleAddCourse} className="w-full">
                   Add Course
