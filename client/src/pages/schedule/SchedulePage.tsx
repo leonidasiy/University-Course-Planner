@@ -15,6 +15,7 @@ export function SchedulePage() {
     moveCourse,
     addCourseToLibrary,
     removeCourseFromLibrary,
+    toggleCourseCompletion,
     totalCredits,
     completedCredits,
     dsctCredits,
@@ -42,6 +43,7 @@ export function SchedulePage() {
             onAddCourse={addCourseToSemester}
             onRemoveCourse={removeCourseFromSemester}
             onMoveCourse={moveCourse}
+            onToggleCompletion={toggleCourseCompletion}
           />
         </div>
         
@@ -50,6 +52,7 @@ export function SchedulePage() {
             courses={availableCourses}
             onAddCourse={addCourseToLibrary}
             onRemoveCourse={removeCourseFromLibrary}
+            onToggleCompletion={toggleCourseCompletion}
           />
         </div>
       </div>

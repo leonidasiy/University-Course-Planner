@@ -3,7 +3,8 @@ export interface Course {
   code: string;
   name: string;
   credits: number;
-  majorRequirement?: 'DSCT' | 'COSC' | 'CCC' | null;
+  majorRequirements: ('DSCT' | 'COSC' | 'CCC')[];
+  isCompleted: boolean;
 }
 
 export interface Semester {

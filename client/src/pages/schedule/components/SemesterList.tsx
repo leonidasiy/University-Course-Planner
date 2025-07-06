@@ -9,6 +9,7 @@ interface SemesterListProps {
   onAddCourse: (semesterId: string, course: Course) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
+  onToggleCompletion: (courseId: string) => void;
 }
 
 export function SemesterList({
@@ -17,7 +18,8 @@ export function SemesterList({
   onRemoveSemester,
   onAddCourse,
   onRemoveCourse,
-  onMoveCourse
+  onMoveCourse,
+  onToggleCompletion
 }: SemesterListProps) {
   if (semesters.length === 0) {
     return (
@@ -41,6 +43,7 @@ export function SemesterList({
             onAddCourse={onAddCourse}
             onRemoveCourse={onRemoveCourse}
             onMoveCourse={onMoveCourse}
+            onToggleCompletion={onToggleCompletion}
           />
         ))}
       </div>

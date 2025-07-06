@@ -14,6 +14,7 @@ interface SemesterCardProps {
   onAddCourse: (semesterId: string, course: Course) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
+  onToggleCompletion: (courseId: string) => void;
 }
 
 const getSemesterIcon = (type: string) => {
@@ -52,25 +53,35 @@ export function SemesterCard({
   onRemove,
   onAddCourse,
   onRemoveCourse,
-  onMoveCourse
+  onMoveCourse,
+  onToggleCompletion
 }: SemesterCardProps) {
   const [selectedCourseId, setSelectedCourseId] = React.useState<string>('');
 
   const totalCredits = semester.courses.reduce((sum, course) => sum + course.credits, 0);
+  const completedCredits = semester.courses
+    .filter(course => course.isCompleted)
+    .reduce((sum, course) => sum + course.credits, 0);
+  
   const dsctCredits = semester.courses
-    .filter(course => course.majorRequirement === 'DSCT')
+    .filter(course => course.isCompleted && course.majorRequirements.includes('DSCT'))
     .reduce((sum, course) => sum + course.credits, 0);
   const coscCredits = semester.courses
-    .filter(course => course.majorRequirement === 'COSC')
+    .filter(course => course.isCompleted && course.majorRequirements.includes('COSC'))
     .reduce((sum, course) => sum + course.credits, 0);
   const cccCredits = semester.courses
-    .filter(course => course.majorRequirement === 'CCC')
+    .filter(course => course.isCompleted && course.majorRequirements.includes('CCC'))
     .reduce((sum, course) => sum + course.credits, 0);
 
-  const courseOptions = availableCourses.map(course => ({
-    value: course.id,
-    label: `${course.code} - ${course.name} (${course.credits} credits)`
-  }));
+  const courseOptions = availableCourses.map(course => {
+    const reqText = course.majorRequirements.length > 0 
+      ? ` [${course.majorRequirements.join(', ')}]` 
+      : '';
+    return {
+      value: course.id,
+      label: `${course.code} - ${course.name} (${course.credits} credits)${reqText}`
+    };
+  });
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -119,7 +130,7 @@ export function SemesterCard({
           </CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">
-              {totalCredits} credits
+              {completedCredits}/{totalCredits} credits
             </Badge>
             {dsctCredits > 0 && (
               <Badge variant="outline" className="text-blue-600 border-blue-600">
@@ -186,6 +197,7 @@ export function SemesterCard({
                 course={course}
                 semesterId={semester.id}
                 onRemove={onRemoveCourse}
+                onToggleCompletion={onToggleCompletion}
               />
             ))}
           </div>
