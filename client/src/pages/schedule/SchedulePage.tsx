@@ -18,7 +18,8 @@ export function SchedulePage() {
     totalCredits,
     completedCredits,
     dsctCredits,
-    coscCredits
+    coscCredits,
+    cccCredits
   } = useSchedule();
 
   return (
@@ -28,6 +29,7 @@ export function SchedulePage() {
         completedCredits={completedCredits}
         dsctCredits={dsctCredits}
         coscCredits={coscCredits}
+        cccCredits={cccCredits}
         onAddSemester={addSemester}
       />
       

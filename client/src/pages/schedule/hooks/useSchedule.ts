@@ -4,16 +4,20 @@ import { Semester, Course, ScheduleData } from '../types/schedule';
 const SAMPLE_COURSES: Course[] = [
   { id: '1', code: 'CS101', name: 'Introduction to Computer Science', credits: 3, majorRequirement: 'COSC' },
   { id: '2', code: 'MATH151', name: 'Calculus I', credits: 4, majorRequirement: null },
-  { id: '3', code: 'ENGL101', name: 'English Composition', credits: 3, majorRequirement: null },
-  { id: '4', code: 'HIST201', name: 'World History', credits: 3, majorRequirement: null },
+  { id: '3', code: 'ENGL101', name: 'English Composition', credits: 3, majorRequirement: 'CCC' },
+  { id: '4', code: 'HIST201', name: 'World History', credits: 3, majorRequirement: 'CCC' },
   { id: '5', code: 'CS201', name: 'Data Structures', credits: 3, majorRequirement: 'COSC' },
   { id: '6', code: 'MATH152', name: 'Calculus II', credits: 4, majorRequirement: null },
-  { id: '7', code: 'PHYS101', name: 'Physics I', credits: 4, majorRequirement: null },
+  { id: '7', code: 'PHYS101', name: 'Physics I', credits: 4, majorRequirement: 'CCC' },
   { id: '8', code: 'CS301', name: 'Algorithms', credits: 3, majorRequirement: 'COSC' },
   { id: '9', code: 'DSCT101', name: 'Introduction to Data Science', credits: 3, majorRequirement: 'DSCT' },
   { id: '10', code: 'DSCT201', name: 'Statistical Computing', credits: 3, majorRequirement: 'DSCT' },
   { id: '11', code: 'DSCT301', name: 'Machine Learning', credits: 3, majorRequirement: 'DSCT' },
   { id: '12', code: 'STAT101', name: 'Statistics I', credits: 3, majorRequirement: 'DSCT' },
+  { id: '13', code: 'PHIL101', name: 'Introduction to Philosophy', credits: 3, majorRequirement: 'CCC' },
+  { id: '14', code: 'PSYC101', name: 'General Psychology', credits: 3, majorRequirement: 'CCC' },
+  { id: '15', code: 'ECON101', name: 'Principles of Economics', credits: 3, majorRequirement: 'CCC' },
+  { id: '16', code: 'BIOL101', name: 'General Biology', credits: 4, majorRequirement: 'CCC' },
 ];
 
 export function useSchedule() {
@@ -151,6 +155,14 @@ export function useSchedule() {
     );
   }, [scheduleData.semesters]);
 
+  const cccCredits = React.useMemo(() => {
+    return scheduleData.semesters.reduce((total, semester) => 
+      total + semester.courses
+        .filter(course => course.majorRequirement === 'CCC')
+        .reduce((semTotal, course) => semTotal + course.credits, 0), 0
+    );
+  }, [scheduleData.semesters]);
+
   return {
     semesters: scheduleData.semesters,
     availableCourses: scheduleData.availableCourses,
@@ -164,6 +176,7 @@ export function useSchedule() {
     totalCredits,
     completedCredits,
     dsctCredits,
-    coscCredits
+    coscCredits,
+    cccCredits
   };
 }

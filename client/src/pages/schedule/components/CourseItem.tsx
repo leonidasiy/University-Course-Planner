@@ -37,7 +37,8 @@ export function CourseItem({ course, semesterId, onRemove, onRemoveFromLibrary }
     
     const colors = {
       DSCT: 'text-blue-600 border-blue-600 bg-blue-50',
-      COSC: 'text-green-600 border-green-600 bg-green-50'
+      COSC: 'text-green-600 border-green-600 bg-green-50',
+      CCC: 'text-purple-600 border-purple-600 bg-purple-50'
     };
 
     return (

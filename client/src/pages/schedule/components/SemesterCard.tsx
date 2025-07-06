@@ -63,6 +63,9 @@ export function SemesterCard({
   const coscCredits = semester.courses
     .filter(course => course.majorRequirement === 'COSC')
     .reduce((sum, course) => sum + course.credits, 0);
+  const cccCredits = semester.courses
+    .filter(course => course.majorRequirement === 'CCC')
+    .reduce((sum, course) => sum + course.credits, 0);
 
   const courseOptions = availableCourses.map(course => ({
     value: course.id,
@@ -126,6 +129,11 @@ export function SemesterCard({
             {coscCredits > 0 && (
               <Badge variant="outline" className="text-green-600 border-green-600">
                 {coscCredits} COSC
+              </Badge>
+            )}
+            {cccCredits > 0 && (
+              <Badge variant="outline" className="text-purple-600 border-purple-600">
+                {cccCredits} CCC
               </Badge>
             )}
             <Button

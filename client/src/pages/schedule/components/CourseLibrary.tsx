@@ -21,7 +21,7 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse }: CourseLi
     code: '',
     name: '',
     credits: 3,
-    majorRequirement: null as 'DSCT' | 'COSC' | null
+    majorRequirement: null as 'DSCT' | 'COSC' | 'CCC' | null
   });
 
   const handleAddCourse = () => {
@@ -95,7 +95,7 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse }: CourseLi
                     value={newCourse.majorRequirement || 'none'} 
                     onValueChange={(value) => setNewCourse({ 
                       ...newCourse, 
-                      majorRequirement: value === 'none' ? null : value as 'DSCT' | 'COSC' 
+                      majorRequirement: value === 'none' ? null : value as 'DSCT' | 'COSC' | 'CCC'
                     })}
                   >
                     <SelectTrigger>
@@ -105,6 +105,7 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse }: CourseLi
                       <SelectItem value="none">None</SelectItem>
                       <SelectItem value="DSCT">DSCT (Data Science and Technology)</SelectItem>
                       <SelectItem value="COSC">COSC (Computer Science)</SelectItem>
+                      <SelectItem value="CCC">CCC (Common Core Courses)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

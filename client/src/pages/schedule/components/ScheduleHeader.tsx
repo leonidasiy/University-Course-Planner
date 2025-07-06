@@ -13,6 +13,7 @@ interface ScheduleHeaderProps {
   completedCredits: number;
   dsctCredits: number;
   coscCredits: number;
+  cccCredits: number;
   onAddSemester: (type: 'Fall' | 'Winter' | 'Spring' | 'Summer', year: number) => void;
 }
 
@@ -20,14 +21,15 @@ export function ScheduleHeader({
   totalCredits, 
   completedCredits, 
   dsctCredits, 
-  coscCredits, 
+  coscCredits,
+  cccCredits,
   onAddSemester 
 }: ScheduleHeaderProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [semesterType, setSemesterType] = React.useState<'Fall' | 'Winter' | 'Spring' | 'Summer'>('Fall');
   const [year, setYear] = React.useState(new Date().getFullYear());
 
-  const progressPercentage = totalCredits > 0 ? (completedCredits / totalCredits) * 100 : 0;
+  const progressPercentage = (completedCredits / 120) * 100;
 
   const handleAddSemester = () => {
     onAddSemester(semesterType, year);
@@ -87,12 +89,12 @@ export function ScheduleHeader({
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
-              Total Credits
+              Planned Credits
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -106,6 +108,7 @@ export function ScheduleHeader({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completedCredits}</div>
+            <div className="text-xs text-muted-foreground">/ 120 total</div>
           </CardContent>
         </Card>
 
@@ -124,6 +127,15 @@ export function ScheduleHeader({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{coscCredits}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium">CCC Credits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">{cccCredits}</div>
           </CardContent>
         </Card>
 
