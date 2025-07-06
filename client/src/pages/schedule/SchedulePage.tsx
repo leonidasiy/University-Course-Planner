@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ScheduleHeader } from './components/ScheduleHeader';
 import { SemesterList } from './components/SemesterList';
 import { CourseLibrary } from './components/CourseLibrary';
+import { CourseSearch } from './components/CourseSearch';
 import { useSchedule } from './hooks/useSchedule';
 
 export function SchedulePage() {
@@ -17,6 +18,7 @@ export function SchedulePage() {
     addCourseToLibrary,
     removeCourseFromLibrary,
     toggleCourseCompletion,
+    searchCourseInSemesters,
     totalCredits,
     completedCredits,
     requirementCredits
@@ -57,7 +59,9 @@ export function SchedulePage() {
           />
         </div>
         
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-6">
+          <CourseSearch onSearch={searchCourseInSemesters} />
+          
           <CourseLibrary
             courses={availableCourses}
             onAddCourse={addCourseToLibrary}

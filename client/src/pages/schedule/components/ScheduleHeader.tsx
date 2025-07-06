@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, GraduationCap, BookOpen } from 'lucide-react';
+import { Plus, GraduationCap } from 'lucide-react';
 
 interface RequirementCredits {
   dsct: { completed: number; total: number };
@@ -31,7 +31,7 @@ export function ScheduleHeader({
   const [semesterType, setSemesterType] = React.useState<'Fall' | 'Winter' | 'Spring' | 'Summer'>('Fall');
   const [year, setYear] = React.useState(new Date().getFullYear());
 
-  const progressPercentage = (completedCredits / 120) * 100;
+  const progressPercentage = totalCredits > 0 ? (completedCredits / totalCredits) * 100 : 0;
 
   const handleAddSemester = () => {
     onAddSemester(semesterType, year);
@@ -91,26 +91,19 @@ export function ScheduleHeader({
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Planned Credits
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Progress</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalCredits}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Completed Credits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completedCredits}</div>
-            <div className="text-xs text-muted-foreground">/ 120 total</div>
+            <div className="text-2xl font-bold">
+              {completedCredits}/{totalCredits}
+            </div>
+            <div className="text-xs text-muted-foreground mb-2">
+              credits ({Math.round(progressPercentage)}%)
+            </div>
+            <Progress value={progressPercentage} className="h-2" />
           </CardContent>
         </Card>
 
@@ -158,11 +151,15 @@ export function ScheduleHeader({
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Progress</CardTitle>
+            <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-2xl font-bold">{Math.round(progressPercentage)}%</div>
-            <Progress value={progressPercentage} className="h-2" />
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {completedCredits}/120
+            </div>
+            <div className="text-xs text-muted-foreground">
+              toward degree
+            </div>
           </CardContent>
         </Card>
       </div>

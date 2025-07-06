@@ -23,6 +23,36 @@ const SAMPLE_COURSES: Course[] = [
   { id: '18', code: 'MATH301', name: 'Linear Algebra', credits: 3, majorRequirements: ['DSCT', 'CCC'], isCompleted: false },
 ];
 
+// Generate default semesters from Fall 2024 to Spring 2028
+const generateDefaultSemesters = (): Semester[] => {
+  const semesters: Semester[] = [];
+  let semesterIdCounter = 1000;
+
+  for (let year = 2024; year <= 2028; year++) {
+    // Add Fall semester
+    if (year < 2028) { // Don't add Fall 2028
+      semesters.push({
+        id: `semester_${semesterIdCounter++}`,
+        name: `Fall ${year}`,
+        type: 'Fall',
+        year,
+        courses: []
+      });
+    }
+    
+    // Add Spring semester (including Spring 2028)
+    semesters.push({
+      id: `semester_${semesterIdCounter++}`,
+      name: `Spring ${year}`,
+      type: 'Spring',
+      year,
+      courses: []
+    });
+  }
+
+  return semesters;
+};
+
 export function useSchedule() {
   const [scheduleData, setScheduleData] = React.useState<ScheduleData>({
     semesters: [],
@@ -38,11 +68,11 @@ export function useSchedule() {
         console.log('Loading schedule data...');
         const data = await loadScheduleData();
         
-        // If no data exists in database, use sample courses
+        // If no data exists in database, use sample courses and default semesters
         if (data.availableCourses.length === 0 && data.semesters.length === 0) {
-          console.log('No existing data found, using sample courses');
+          console.log('No existing data found, using sample courses and default semesters');
           setScheduleData({
-            semesters: [],
+            semesters: generateDefaultSemesters(),
             availableCourses: [...SAMPLE_COURSES]
           });
         } else {
@@ -52,7 +82,7 @@ export function useSchedule() {
       } catch (error) {
         console.error('Failed to load schedule data, using sample data:', error);
         setScheduleData({
-          semesters: [],
+          semesters: generateDefaultSemesters(),
           availableCourses: [...SAMPLE_COURSES]
         });
       } finally {
@@ -224,6 +254,27 @@ export function useSchedule() {
     updateScheduleData(newData);
   };
 
+  // Search for a course across all semesters (case-insensitive)
+  const searchCourseInSemesters = (searchTerm: string): Array<{semester: Semester, course: Course}> => {
+    if (!searchTerm.trim()) return [];
+    
+    const results: Array<{semester: Semester, course: Course}> = [];
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    
+    scheduleData.semesters.forEach(semester => {
+      semester.courses.forEach(course => {
+        if (
+          course.code.toLowerCase().includes(lowerSearchTerm) ||
+          course.name.toLowerCase().includes(lowerSearchTerm)
+        ) {
+          results.push({ semester, course });
+        }
+      });
+    });
+    
+    return results;
+  };
+
   const totalCredits = React.useMemo(() => {
     return scheduleData.semesters.reduce((total, semester) => 
       total + semester.courses.reduce((semTotal, course) => semTotal + course.credits, 0), 0
@@ -286,6 +337,7 @@ export function useSchedule() {
     removeCourseFromLibrary,
     toggleCourseCompletion,
     updateCourse,
+    searchCourseInSemesters,
     totalCredits,
     completedCredits,
     requirementCredits

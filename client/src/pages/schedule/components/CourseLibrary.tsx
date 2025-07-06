@@ -90,8 +90,8 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
         onShowIncompleteChange={setShowIncomplete}
       />
 
-      <Card>
-        <CardHeader>
+      <Card className="flex flex-col h-[600px]">
+        <CardHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Library className="h-5 w-5" />
@@ -176,23 +176,25 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
           </div>
         </CardHeader>
         
-        <CardContent>
-          {filteredCourses.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No courses match the current filters.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredCourses.map((course) => (
-                <CourseItem
-                  key={course.id}
-                  course={course}
-                  onRemoveFromLibrary={onRemoveCourse}
-                  onToggleCompletion={onToggleCompletion}
-                />
-              ))}
-            </div>
-          )}
+        <CardContent className="flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            {filteredCourses.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No courses match the current filters.
+              </div>
+            ) : (
+              <div className="space-y-2 pr-2">
+                {filteredCourses.map((course) => (
+                  <CourseItem
+                    key={course.id}
+                    course={course}
+                    onRemoveFromLibrary={onRemoveCourse}
+                    onToggleCompletion={onToggleCompletion}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
