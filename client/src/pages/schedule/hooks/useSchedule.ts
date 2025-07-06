@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Semester, Course, ScheduleData } from '../types/schedule';
+import { loadScheduleData, saveScheduleData } from '../services/scheduleApi';
 
 const SAMPLE_COURSES: Course[] = [
   { id: '1', code: 'CS101', name: 'Introduction to Computer Science', credits: 3, majorRequirements: ['COSC'], isCompleted: false },
@@ -27,6 +28,67 @@ export function useSchedule() {
     semesters: [],
     availableCourses: [...SAMPLE_COURSES]
   });
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [saveTimeout, setSaveTimeout] = React.useState<NodeJS.Timeout | null>(null);
+
+  // Load data on component mount
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        console.log('Loading schedule data...');
+        const data = await loadScheduleData();
+        
+        // If no data exists in database, use sample courses
+        if (data.availableCourses.length === 0 && data.semesters.length === 0) {
+          console.log('No existing data found, using sample courses');
+          setScheduleData({
+            semesters: [],
+            availableCourses: [...SAMPLE_COURSES]
+          });
+        } else {
+          console.log('Loaded existing data from database');
+          setScheduleData(data);
+        }
+      } catch (error) {
+        console.error('Failed to load schedule data, using sample data:', error);
+        setScheduleData({
+          semesters: [],
+          availableCourses: [...SAMPLE_COURSES]
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // Auto-save function with debouncing
+  const autoSave = React.useCallback((newData: ScheduleData) => {
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        console.log('Auto-saving schedule data...');
+        await saveScheduleData(newData);
+        console.log('Auto-save completed successfully');
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      }
+    }, 1000); // Save 1 second after last change
+
+    setSaveTimeout(timeout);
+  }, [saveTimeout]);
+
+  // Update data and trigger auto-save
+  const updateScheduleData = React.useCallback((newData: ScheduleData) => {
+    setScheduleData(newData);
+    if (!isLoading) {
+      autoSave(newData);
+    }
+  }, [autoSave, isLoading]);
 
   const addSemester = (type: 'Fall' | 'Winter' | 'Spring' | 'Summer', year: number) => {
     const newSemester: Semester = {
@@ -37,101 +99,100 @@ export function useSchedule() {
       courses: []
     };
     
-    setScheduleData(prev => ({
-      ...prev,
-      semesters: [...prev.semesters, newSemester].sort((a, b) => {
+    const newData = {
+      ...scheduleData,
+      semesters: [...scheduleData.semesters, newSemester].sort((a, b) => {
         if (a.year !== b.year) return a.year - b.year;
         const order = { 'Winter': 1, 'Spring': 2, 'Summer': 3, 'Fall': 4 };
         return order[a.type] - order[b.type];
       })
-    }));
+    };
+    
+    updateScheduleData(newData);
   };
 
   const removeSemester = (semesterId: string) => {
-    setScheduleData(prev => {
-      const semester = prev.semesters.find(s => s.id === semesterId);
-      if (semester) {
-        return {
-          semesters: prev.semesters.filter(s => s.id !== semesterId),
-          availableCourses: [...prev.availableCourses, ...semester.courses]
-        };
-      }
-      return prev;
-    });
+    const semester = scheduleData.semesters.find(s => s.id === semesterId);
+    if (semester) {
+      const newData = {
+        semesters: scheduleData.semesters.filter(s => s.id !== semesterId),
+        availableCourses: [...scheduleData.availableCourses, ...semester.courses]
+      };
+      updateScheduleData(newData);
+    }
   };
 
   const addCourseToSemester = (semesterId: string, course: Course) => {
-    setScheduleData(prev => ({
-      semesters: prev.semesters.map(semester =>
+    const newData = {
+      semesters: scheduleData.semesters.map(semester =>
         semester.id === semesterId
           ? { ...semester, courses: [...semester.courses, course] }
           : semester
       ),
-      availableCourses: prev.availableCourses.filter(c => c.id !== course.id)
-    }));
+      availableCourses: scheduleData.availableCourses.filter(c => c.id !== course.id)
+    };
+    updateScheduleData(newData);
   };
 
   const removeCourseFromSemester = (semesterId: string, courseId: string) => {
-    setScheduleData(prev => {
-      const semester = prev.semesters.find(s => s.id === semesterId);
-      const course = semester?.courses.find(c => c.id === courseId);
-      
-      if (course) {
-        return {
-          semesters: prev.semesters.map(s =>
-            s.id === semesterId
-              ? { ...s, courses: s.courses.filter(c => c.id !== courseId) }
-              : s
-          ),
-          availableCourses: [...prev.availableCourses, course]
-        };
-      }
-      return prev;
-    });
+    const semester = scheduleData.semesters.find(s => s.id === semesterId);
+    const course = semester?.courses.find(c => c.id === courseId);
+    
+    if (course) {
+      const newData = {
+        semesters: scheduleData.semesters.map(s =>
+          s.id === semesterId
+            ? { ...s, courses: s.courses.filter(c => c.id !== courseId) }
+            : s
+        ),
+        availableCourses: [...scheduleData.availableCourses, course]
+      };
+      updateScheduleData(newData);
+    }
   };
 
   const moveCourse = (fromSemesterId: string, toSemesterId: string, courseId: string) => {
     if (fromSemesterId === toSemesterId) return;
 
-    setScheduleData(prev => {
-      const fromSemester = prev.semesters.find(s => s.id === fromSemesterId);
-      const course = fromSemester?.courses.find(c => c.id === courseId);
-      
-      if (course) {
-        return {
-          ...prev,
-          semesters: prev.semesters.map(semester => {
-            if (semester.id === fromSemesterId) {
-              return { ...semester, courses: semester.courses.filter(c => c.id !== courseId) };
-            }
-            if (semester.id === toSemesterId) {
-              return { ...semester, courses: [...semester.courses, course] };
-            }
-            return semester;
-          })
-        };
-      }
-      return prev;
-    });
+    const fromSemester = scheduleData.semesters.find(s => s.id === fromSemesterId);
+    const course = fromSemester?.courses.find(c => c.id === courseId);
+    
+    if (course) {
+      const newData = {
+        ...scheduleData,
+        semesters: scheduleData.semesters.map(semester => {
+          if (semester.id === fromSemesterId) {
+            return { ...semester, courses: semester.courses.filter(c => c.id !== courseId) };
+          }
+          if (semester.id === toSemesterId) {
+            return { ...semester, courses: [...semester.courses, course] };
+          }
+          return semester;
+        })
+      };
+      updateScheduleData(newData);
+    }
   };
 
   const addCourseToLibrary = (course: Course) => {
-    setScheduleData(prev => ({
-      ...prev,
-      availableCourses: [...prev.availableCourses, course]
-    }));
+    const newData = {
+      ...scheduleData,
+      availableCourses: [...scheduleData.availableCourses, course]
+    };
+    updateScheduleData(newData);
   };
 
   const removeCourseFromLibrary = (courseId: string) => {
-    setScheduleData(prev => ({
-      ...prev,
-      availableCourses: prev.availableCourses.filter(c => c.id !== courseId)
-    }));
+    const newData = {
+      ...scheduleData,
+      availableCourses: scheduleData.availableCourses.filter(c => c.id !== courseId)
+    };
+    updateScheduleData(newData);
   };
 
   const toggleCourseCompletion = (courseId: string) => {
-    setScheduleData(prev => ({
-      semesters: prev.semesters.map(semester => ({
+    const newData = {
+      semesters: scheduleData.semesters.map(semester => ({
         ...semester,
         courses: semester.courses.map(course =>
           course.id === courseId
@@ -139,26 +200,28 @@ export function useSchedule() {
             : course
         )
       })),
-      availableCourses: prev.availableCourses.map(course =>
+      availableCourses: scheduleData.availableCourses.map(course =>
         course.id === courseId
           ? { ...course, isCompleted: !course.isCompleted }
           : course
       )
-    }));
+    };
+    updateScheduleData(newData);
   };
 
   const updateCourse = (courseId: string, updates: Partial<Course>) => {
-    setScheduleData(prev => ({
-      semesters: prev.semesters.map(semester => ({
+    const newData = {
+      semesters: scheduleData.semesters.map(semester => ({
         ...semester,
         courses: semester.courses.map(course =>
           course.id === courseId ? { ...course, ...updates } : course
         )
       })),
-      availableCourses: prev.availableCourses.map(course =>
+      availableCourses: scheduleData.availableCourses.map(course =>
         course.id === courseId ? { ...course, ...updates } : course
       )
-    }));
+    };
+    updateScheduleData(newData);
   };
 
   const totalCredits = React.useMemo(() => {
@@ -202,6 +265,7 @@ export function useSchedule() {
   return {
     semesters: scheduleData.semesters,
     availableCourses: scheduleData.availableCourses,
+    isLoading,
     addSemester,
     removeSemester,
     addCourseToSemester,
