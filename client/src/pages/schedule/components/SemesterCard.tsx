@@ -63,14 +63,26 @@ export function SemesterCard({
     .filter(course => course.isCompleted)
     .reduce((sum, course) => sum + course.credits, 0);
   
-  const dsctCredits = semester.courses
+  // Calculate requirement credits for this semester only
+  const dsctCompletedCredits = semester.courses
     .filter(course => course.isCompleted && course.majorRequirements.includes('DSCT'))
     .reduce((sum, course) => sum + course.credits, 0);
-  const coscCredits = semester.courses
+  const dsctTotalCredits = semester.courses
+    .filter(course => course.majorRequirements.includes('DSCT'))
+    .reduce((sum, course) => sum + course.credits, 0);
+
+  const coscCompletedCredits = semester.courses
     .filter(course => course.isCompleted && course.majorRequirements.includes('COSC'))
     .reduce((sum, course) => sum + course.credits, 0);
-  const cccCredits = semester.courses
+  const coscTotalCredits = semester.courses
+    .filter(course => course.majorRequirements.includes('COSC'))
+    .reduce((sum, course) => sum + course.credits, 0);
+
+  const cccCompletedCredits = semester.courses
     .filter(course => course.isCompleted && course.majorRequirements.includes('CCC'))
+    .reduce((sum, course) => sum + course.credits, 0);
+  const cccTotalCredits = semester.courses
+    .filter(course => course.majorRequirements.includes('CCC'))
     .reduce((sum, course) => sum + course.credits, 0);
 
   const courseOptions = availableCourses.map(course => {
@@ -132,19 +144,19 @@ export function SemesterCard({
             <Badge variant="secondary">
               {completedCredits}/{totalCredits} credits
             </Badge>
-            {dsctCredits > 0 && (
+            {dsctTotalCredits > 0 && (
               <Badge variant="outline" className="text-blue-600 border-blue-600">
-                {dsctCredits} DSCT
+                {dsctCompletedCredits}/{dsctTotalCredits} DSCT
               </Badge>
             )}
-            {coscCredits > 0 && (
+            {coscTotalCredits > 0 && (
               <Badge variant="outline" className="text-green-600 border-green-600">
-                {coscCredits} COSC
+                {coscCompletedCredits}/{coscTotalCredits} COSC
               </Badge>
             )}
-            {cccCredits > 0 && (
+            {cccTotalCredits > 0 && (
               <Badge variant="outline" className="text-purple-600 border-purple-600">
-                {cccCredits} CCC
+                {cccCompletedCredits}/{cccTotalCredits} CCC
               </Badge>
             )}
             <Button

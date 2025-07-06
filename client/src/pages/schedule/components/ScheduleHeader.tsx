@@ -8,21 +8,23 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, GraduationCap, BookOpen } from 'lucide-react';
 
+interface RequirementCredits {
+  dsct: { completed: number; total: number };
+  cosc: { completed: number; total: number };
+  ccc: { completed: number; total: number };
+}
+
 interface ScheduleHeaderProps {
   totalCredits: number;
   completedCredits: number;
-  dsctCredits: number;
-  coscCredits: number;
-  cccCredits: number;
+  requirementCredits: RequirementCredits;
   onAddSemester: (type: 'Fall' | 'Winter' | 'Spring' | 'Summer', year: number) => void;
 }
 
 export function ScheduleHeader({ 
   totalCredits, 
   completedCredits, 
-  dsctCredits, 
-  coscCredits,
-  cccCredits,
+  requirementCredits,
   onAddSemester 
 }: ScheduleHeaderProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -117,7 +119,12 @@ export function ScheduleHeader({
             <CardTitle className="text-sm font-medium">DSCT Credits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{dsctCredits}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {requirementCredits.dsct.completed}/{requirementCredits.dsct.total}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Data Science & Technology
+            </div>
           </CardContent>
         </Card>
 
@@ -126,7 +133,12 @@ export function ScheduleHeader({
             <CardTitle className="text-sm font-medium">COSC Credits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{coscCredits}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {requirementCredits.cosc.completed}/{requirementCredits.cosc.total}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Computer Science
+            </div>
           </CardContent>
         </Card>
 
@@ -135,7 +147,12 @@ export function ScheduleHeader({
             <CardTitle className="text-sm font-medium">CCC Credits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{cccCredits}</div>
+            <div className="text-2xl font-bold text-purple-600">
+              {requirementCredits.ccc.completed}/{requirementCredits.ccc.total}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Common Core Courses
+            </div>
           </CardContent>
         </Card>
 

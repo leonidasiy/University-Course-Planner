@@ -19,9 +19,7 @@ export function SchedulePage() {
     toggleCourseCompletion,
     totalCredits,
     completedCredits,
-    dsctCredits,
-    coscCredits,
-    cccCredits
+    requirementCredits
   } = useSchedule();
 
   if (isLoading) {
@@ -42,9 +40,7 @@ export function SchedulePage() {
       <ScheduleHeader
         totalCredits={totalCredits}
         completedCredits={completedCredits}
-        dsctCredits={dsctCredits}
-        coscCredits={coscCredits}
-        cccCredits={cccCredits}
+        requirementCredits={requirementCredits}
         onAddSemester={addSemester}
       />
       

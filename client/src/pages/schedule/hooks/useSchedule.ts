@@ -238,28 +238,39 @@ export function useSchedule() {
     );
   }, [scheduleData.semesters]);
 
-  const dsctCredits = React.useMemo(() => {
-    return scheduleData.semesters.reduce((total, semester) => 
-      total + semester.courses
-        .filter(course => course.isCompleted && course.majorRequirements.includes('DSCT'))
-        .reduce((semTotal, course) => semTotal + course.credits, 0), 0
-    );
-  }, [scheduleData.semesters]);
+  // Calculate requirement credits (completed/total planned)
+  const requirementCredits = React.useMemo(() => {
+    const allScheduledCourses = scheduleData.semesters.flatMap(semester => semester.courses);
+    
+    const dsctCompleted = allScheduledCourses
+      .filter(course => course.isCompleted && course.majorRequirements.includes('DSCT'))
+      .reduce((sum, course) => sum + course.credits, 0);
+    
+    const dsctTotal = allScheduledCourses
+      .filter(course => course.majorRequirements.includes('DSCT'))
+      .reduce((sum, course) => sum + course.credits, 0);
 
-  const coscCredits = React.useMemo(() => {
-    return scheduleData.semesters.reduce((total, semester) => 
-      total + semester.courses
-        .filter(course => course.isCompleted && course.majorRequirements.includes('COSC'))
-        .reduce((semTotal, course) => semTotal + course.credits, 0), 0
-    );
-  }, [scheduleData.semesters]);
+    const coscCompleted = allScheduledCourses
+      .filter(course => course.isCompleted && course.majorRequirements.includes('COSC'))
+      .reduce((sum, course) => sum + course.credits, 0);
+    
+    const coscTotal = allScheduledCourses
+      .filter(course => course.majorRequirements.includes('COSC'))
+      .reduce((sum, course) => sum + course.credits, 0);
 
-  const cccCredits = React.useMemo(() => {
-    return scheduleData.semesters.reduce((total, semester) => 
-      total + semester.courses
-        .filter(course => course.isCompleted && course.majorRequirements.includes('CCC'))
-        .reduce((semTotal, course) => semTotal + course.credits, 0), 0
-    );
+    const cccCompleted = allScheduledCourses
+      .filter(course => course.isCompleted && course.majorRequirements.includes('CCC'))
+      .reduce((sum, course) => sum + course.credits, 0);
+    
+    const cccTotal = allScheduledCourses
+      .filter(course => course.majorRequirements.includes('CCC'))
+      .reduce((sum, course) => sum + course.credits, 0);
+
+    return {
+      dsct: { completed: dsctCompleted, total: dsctTotal },
+      cosc: { completed: coscCompleted, total: coscTotal },
+      ccc: { completed: cccCompleted, total: cccTotal }
+    };
   }, [scheduleData.semesters]);
 
   return {
@@ -277,8 +288,6 @@ export function useSchedule() {
     updateCourse,
     totalCredits,
     completedCredits,
-    dsctCredits,
-    coscCredits,
-    cccCredits
+    requirementCredits
   };
 }
