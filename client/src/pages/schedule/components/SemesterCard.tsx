@@ -49,6 +49,18 @@ const getSemesterColor = (type: string) => {
   }
 };
 
+// Define required semesters that cannot be deleted
+const REQUIRED_SEMESTER_IDS = [
+  'semester_2024_fall',
+  'semester_2025_spring', 
+  'semester_2025_fall',
+  'semester_2026_spring',
+  'semester_2026_fall',
+  'semester_2027_spring',
+  'semester_2027_fall',
+  'semester_2028_spring'
+];
+
 export function SemesterCard({
   semester,
   availableCourses,
@@ -62,6 +74,8 @@ export function SemesterCard({
   const [selectedCourseId, setSelectedCourseId] = React.useState<string>('');
   const [clearDialogOpen, setClearDialogOpen] = React.useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = React.useState(false);
+
+  const isRequiredSemester = REQUIRED_SEMESTER_IDS.includes(semester.id);
 
   const totalCredits = semester.courses.reduce((sum, course) => sum + course.credits, 0);
   const completedCredits = semester.courses
@@ -209,40 +223,42 @@ export function SemesterCard({
               </Dialog>
             )}
             
-            <Dialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  title="Remove semester"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Delete Semester</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <p>Are you sure you want to delete {semester.name}?</p>
-                  {semester.courses.length > 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      This semester contains {semester.courses.length} course{semester.courses.length !== 1 ? 's' : ''}. 
-                      All courses will be moved back to the course library.
-                    </p>
-                  )}
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={() => setRemoveDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button variant="destructive" onClick={handleRemoveClick}>
-                      Delete Semester
-                    </Button>
+            {!isRequiredSemester && (
+              <Dialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    title="Remove semester"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Semester</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p>Are you sure you want to delete {semester.name}?</p>
+                    {semester.courses.length > 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        This semester contains {semester.courses.length} course{semester.courses.length !== 1 ? 's' : ''}. 
+                        All courses will be moved back to the course library.
+                      </p>
+                    )}
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" onClick={() => setRemoveDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button variant="destructive" onClick={handleRemoveClick}>
+                        Delete Semester
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
       </CardHeader>

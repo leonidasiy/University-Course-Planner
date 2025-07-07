@@ -23,33 +23,43 @@ const SAMPLE_COURSES: Course[] = [
   { id: '18', code: 'MATH301', name: 'Linear Algebra', credits: 3, majorRequirements: ['DSCT', 'CCC'], isCompleted: false },
 ];
 
-// Generate specific semesters: 2024 Fall, 2025 Spring, 2025 Fall, 2026 Spring, 2026 Fall, 2027 Spring, 2027 Fall, 2028 Spring
-const generateDefaultSemesters = (): Semester[] => {
-  const semesters: Semester[] = [];
-  let semesterIdCounter = 1000;
+// Define the exact required semesters
+const REQUIRED_SEMESTERS = [
+  { year: 2024, type: 'Fall' as const, id: 'semester_2024_fall' },
+  { year: 2025, type: 'Spring' as const, id: 'semester_2025_spring' },
+  { year: 2025, type: 'Fall' as const, id: 'semester_2025_fall' },
+  { year: 2026, type: 'Spring' as const, id: 'semester_2026_spring' },
+  { year: 2026, type: 'Fall' as const, id: 'semester_2026_fall' },
+  { year: 2027, type: 'Spring' as const, id: 'semester_2027_spring' },
+  { year: 2027, type: 'Fall' as const, id: 'semester_2027_fall' },
+  { year: 2028, type: 'Spring' as const, id: 'semester_2028_spring' }
+];
 
-  const semesterSequence = [
-    { year: 2024, type: 'Fall' as const },
-    { year: 2025, type: 'Spring' as const },
-    { year: 2025, type: 'Fall' as const },
-    { year: 2026, type: 'Spring' as const },
-    { year: 2026, type: 'Fall' as const },
-    { year: 2027, type: 'Spring' as const },
-    { year: 2027, type: 'Fall' as const },
-    { year: 2028, type: 'Spring' as const }
-  ];
+// Generate the required semesters ensuring they always exist
+const ensureRequiredSemesters = (existingSemesters: Semester[]): Semester[] => {
+  const existingSemesterMap = new Map(existingSemesters.map(s => [`${s.year}_${s.type}`, s]));
+  const requiredSemesters: Semester[] = [];
 
-  semesterSequence.forEach(({ year, type }) => {
-    semesters.push({
-      id: `semester_${semesterIdCounter++}`,
-      name: `${type} ${year}`,
-      type,
-      year,
-      courses: []
-    });
+  REQUIRED_SEMESTERS.forEach(({ year, type, id }) => {
+    const key = `${year}_${type}`;
+    const existing = existingSemesterMap.get(key);
+    
+    if (existing) {
+      // Use existing semester with its courses
+      requiredSemesters.push(existing);
+    } else {
+      // Create new required semester
+      requiredSemesters.push({
+        id,
+        name: `${type} ${year}`,
+        type,
+        year,
+        courses: []
+      });
+    }
   });
 
-  return semesters;
+  return requiredSemesters;
 };
 
 export function useSchedule() {
@@ -67,21 +77,19 @@ export function useSchedule() {
         console.log('Loading schedule data...');
         const data = await loadScheduleData();
         
-        // If no data exists in database, use sample courses and default semesters
-        if (data.availableCourses.length === 0 && data.semesters.length === 0) {
-          console.log('No existing data found, using sample courses and default semesters');
-          setScheduleData({
-            semesters: generateDefaultSemesters(),
-            availableCourses: [...SAMPLE_COURSES]
-          });
-        } else {
-          console.log('Loaded existing data from database');
-          setScheduleData(data);
-        }
-      } catch (error) {
-        console.error('Failed to load schedule data, using sample data:', error);
+        // Always ensure required semesters exist
+        const requiredSemesters = ensureRequiredSemesters(data.semesters);
+        
         setScheduleData({
-          semesters: generateDefaultSemesters(),
+          semesters: requiredSemesters,
+          availableCourses: data.availableCourses.length > 0 ? data.availableCourses : [...SAMPLE_COURSES]
+        });
+        
+        console.log('Schedule data loaded and required semesters ensured');
+      } catch (error) {
+        console.error('Failed to load schedule data, using defaults:', error);
+        setScheduleData({
+          semesters: ensureRequiredSemesters([]),
           availableCourses: [...SAMPLE_COURSES]
         });
       } finally {
@@ -113,13 +121,26 @@ export function useSchedule() {
 
   // Update data and trigger auto-save
   const updateScheduleData = React.useCallback((newData: ScheduleData) => {
-    setScheduleData(newData);
+    // Always ensure required semesters exist
+    const updatedData = {
+      ...newData,
+      semesters: ensureRequiredSemesters(newData.semesters)
+    };
+    
+    setScheduleData(updatedData);
     if (!isLoading) {
-      autoSave(newData);
+      autoSave(updatedData);
     }
   }, [autoSave, isLoading]);
 
   const addSemester = (type: 'Fall' | 'Winter' | 'Spring' | 'Summer', year: number) => {
+    // Check if this is one of the required semesters - if so, don't add duplicate
+    const isRequired = REQUIRED_SEMESTERS.some(req => req.year === year && req.type === type);
+    if (isRequired) {
+      console.log('This semester is already required and exists');
+      return;
+    }
+
     const newSemester: Semester = {
       id: Date.now().toString(),
       name: `${type} ${year}`,
@@ -141,6 +162,13 @@ export function useSchedule() {
   };
 
   const removeSemester = (semesterId: string) => {
+    // Prevent removing required semesters
+    const isRequired = REQUIRED_SEMESTERS.some(req => req.id === semesterId);
+    if (isRequired) {
+      console.log('Cannot remove required semester');
+      return;
+    }
+
     const semester = scheduleData.semesters.find(s => s.id === semesterId);
     if (semester) {
       const newData = {
