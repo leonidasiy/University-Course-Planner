@@ -6,6 +6,7 @@ interface SemesterListProps {
   semesters: Semester[];
   availableCourses: Course[];
   onRemoveSemester: (semesterId: string) => void;
+  onClearSemesterCourses: (semesterId: string) => void;
   onAddCourse: (semesterId: string, course: Course) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
@@ -16,6 +17,7 @@ export function SemesterList({
   semesters,
   availableCourses,
   onRemoveSemester,
+  onClearSemesterCourses,
   onAddCourse,
   onRemoveCourse,
   onMoveCourse,
@@ -40,6 +42,7 @@ export function SemesterList({
             semester={semester}
             availableCourses={availableCourses}
             onRemove={onRemoveSemester}
+            onClearCourses={onClearSemesterCourses}
             onAddCourse={onAddCourse}
             onRemoveCourse={onRemoveCourse}
             onMoveCourse={onMoveCourse}

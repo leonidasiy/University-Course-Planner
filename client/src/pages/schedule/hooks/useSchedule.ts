@@ -23,14 +23,14 @@ const SAMPLE_COURSES: Course[] = [
   { id: '18', code: 'MATH301', name: 'Linear Algebra', credits: 3, majorRequirements: ['DSCT', 'CCC'], isCompleted: false },
 ];
 
-// Generate default semesters from Fall 2024 to Spring 2028
+// Generate Fall and Spring semesters from 2024 Fall to 2028 Spring
 const generateDefaultSemesters = (): Semester[] => {
   const semesters: Semester[] = [];
   let semesterIdCounter = 1000;
 
   for (let year = 2024; year <= 2028; year++) {
-    // Add Fall semester
-    if (year < 2028) { // Don't add Fall 2028
+    // Add Fall semester (but not Fall 2028)
+    if (year < 2028) {
       semesters.push({
         id: `semester_${semesterIdCounter++}`,
         name: `Fall ${year}`,
@@ -146,6 +146,19 @@ export function useSchedule() {
     if (semester) {
       const newData = {
         semesters: scheduleData.semesters.filter(s => s.id !== semesterId),
+        availableCourses: [...scheduleData.availableCourses, ...semester.courses]
+      };
+      updateScheduleData(newData);
+    }
+  };
+
+  const clearSemesterCourses = (semesterId: string) => {
+    const semester = scheduleData.semesters.find(s => s.id === semesterId);
+    if (semester) {
+      const newData = {
+        semesters: scheduleData.semesters.map(s =>
+          s.id === semesterId ? { ...s, courses: [] } : s
+        ),
         availableCourses: [...scheduleData.availableCourses, ...semester.courses]
       };
       updateScheduleData(newData);
@@ -330,6 +343,7 @@ export function useSchedule() {
     isLoading,
     addSemester,
     removeSemester,
+    clearSemesterCourses,
     addCourseToSemester,
     removeCourseFromSemester,
     moveCourse,

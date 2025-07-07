@@ -12,6 +12,7 @@ export function SchedulePage() {
     isLoading,
     addSemester,
     removeSemester,
+    clearSemesterCourses,
     addCourseToSemester,
     removeCourseFromSemester,
     moveCourse,
@@ -52,6 +53,7 @@ export function SchedulePage() {
             semesters={semesters}
             availableCourses={availableCourses}
             onRemoveSemester={removeSemester}
+            onClearSemesterCourses={clearSemesterCourses}
             onAddCourse={addCourseToSemester}
             onRemoveCourse={removeCourseFromSemester}
             onMoveCourse={moveCourse}

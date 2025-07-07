@@ -3,14 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Combobox } from '@/components/ui/combobox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { Semester, Course } from '../types/schedule';
-import { Trash2, Calendar, Snowflake, Sun, Flower, Leaf, Plus } from 'lucide-react';
+import { Trash2, Calendar, Snowflake, Sun, Flower, Leaf, Plus, Eraser } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: Semester;
   availableCourses: Course[];
   onRemove: (semesterId: string) => void;
+  onClearCourses: (semesterId: string) => void;
   onAddCourse: (semesterId: string, course: Course) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
@@ -51,12 +53,14 @@ export function SemesterCard({
   semester,
   availableCourses,
   onRemove,
+  onClearCourses,
   onAddCourse,
   onRemoveCourse,
   onMoveCourse,
   onToggleCompletion
 }: SemesterCardProps) {
   const [selectedCourseId, setSelectedCourseId] = React.useState<string>('');
+  const [clearDialogOpen, setClearDialogOpen] = React.useState(false);
 
   const totalCredits = semester.courses.reduce((sum, course) => sum + course.credits, 0);
   const completedCredits = semester.courses
@@ -118,6 +122,11 @@ export function SemesterCard({
     onRemove(semester.id);
   };
 
+  const handleClearCoursesClick = () => {
+    onClearCourses(semester.id);
+    setClearDialogOpen(false);
+  };
+
   const handleAddCourseFromDropdown = () => {
     if (selectedCourseId) {
       const course = availableCourses.find(c => c.id === selectedCourseId);
@@ -126,6 +135,10 @@ export function SemesterCard({
         setSelectedCourseId('');
       }
     }
+  };
+
+  const handleComboboxValueChange = (value: string) => {
+    setSelectedCourseId(value);
   };
 
   return (
@@ -159,11 +172,47 @@ export function SemesterCard({
                 {cccCompletedCredits}/{cccTotalCredits} CCC
               </Badge>
             )}
+            
+            {semester.courses.length > 0 && (
+              <Dialog open={clearDialogOpen} onOpenChange={setClearDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    title="Clear all courses"
+                  >
+                    <Eraser className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Clear All Courses</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <p>Are you sure you want to remove all courses from {semester.name}?</p>
+                    <p className="text-sm text-muted-foreground">
+                      This will move all {semester.courses.length} course{semester.courses.length !== 1 ? 's' : ''} back to the course library.
+                    </p>
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" onClick={() => setClearDialogOpen(false)}>
+                        Cancel
+                      </Button>
+                      <Button variant="destructive" onClick={handleClearCoursesClick}>
+                        Clear All Courses
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            
             <Button
               variant="ghost"
               size="sm"
               onClick={handleRemoveClick}
               className="h-8 w-8 p-0"
+              title="Remove semester"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -177,7 +226,7 @@ export function SemesterCard({
             <Combobox
               options={courseOptions}
               value={selectedCourseId}
-              onValueChange={setSelectedCourseId}
+              onValueChange={handleComboboxValueChange}
               placeholder="Select a course to add..."
               searchPlaceholder="Search courses..."
               emptyText="No courses found."
