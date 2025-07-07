@@ -17,6 +17,14 @@ interface CourseLibraryProps {
   onToggleCompletion: (courseId: string) => void;
 }
 
+// Define the sorting priority for course requirements
+const getRequirementPriority = (course: Course): number => {
+  if (course.majorRequirements.includes('DSCT')) return 1;
+  if (course.majorRequirements.includes('COSC')) return 2;
+  if (course.majorRequirements.includes('CCC')) return 3;
+  return 4; // Other/No requirements
+};
+
 export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCompletion }: CourseLibraryProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedRequirements, setSelectedRequirements] = React.useState<string[]>([]);
@@ -60,8 +68,8 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
     }
   };
 
-  const filteredCourses = React.useMemo(() => {
-    return courses.filter(course => {
+  const filteredAndSortedCourses = React.useMemo(() => {
+    let filtered = courses.filter(course => {
       // Filter by completion status
       if (!showCompleted && course.isCompleted) return false;
       if (!showIncomplete && !course.isCompleted) return false;
@@ -69,13 +77,26 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
       // Filter by requirements
       if (selectedRequirements.length === 0) return true;
 
-      if (selectedRequirements.includes('NONE') && course.majorRequirements.length === 0) {
+      if (selectedRequirements.includes('OTHER') && course.majorRequirements.length === 0) {
         return true;
       }
 
       return selectedRequirements.some(req => 
-        req !== 'NONE' && course.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')
+        req !== 'OTHER' && course.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')
       );
+    });
+
+    // Sort courses by requirement priority, then by code
+    return filtered.sort((a, b) => {
+      const priorityA = getRequirementPriority(a);
+      const priorityB = getRequirementPriority(b);
+      
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // If same priority, sort by course code
+      return a.code.localeCompare(b.code);
     });
   }, [courses, selectedRequirements, showCompleted, showIncomplete]);
 
@@ -95,7 +116,7 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Library className="h-5 w-5" />
-              Course Library ({filteredCourses.length})
+              Course Library ({filteredAndSortedCourses.length})
             </CardTitle>
             
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -105,7 +126,7 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
                   Add Course
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Add New Course</DialogTitle>
                 </DialogHeader>
@@ -176,15 +197,15 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 overflow-hidden">
-          <div className="h-full overflow-y-auto">
-            {filteredCourses.length === 0 ? (
+        <CardContent className="flex-1 overflow-hidden p-0">
+          <div className="h-full overflow-y-auto px-6 pb-6">
+            {filteredAndSortedCourses.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 No courses match the current filters.
               </div>
             ) : (
-              <div className="space-y-2 pr-2">
-                {filteredCourses.map((course) => (
+              <div className="space-y-2">
+                {filteredAndSortedCourses.map((course) => (
                   <CourseItem
                     key={course.id}
                     course={course}

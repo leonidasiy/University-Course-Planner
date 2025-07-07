@@ -25,7 +25,7 @@ export function CourseFilters({
     { id: 'DSCT', name: 'DSCT', color: 'text-blue-600 border-blue-600' },
     { id: 'COSC', name: 'COSC', color: 'text-green-600 border-green-600' },
     { id: 'CCC', name: 'CCC', color: 'text-purple-600 border-purple-600' },
-    { id: 'NONE', name: 'No Requirements', color: 'text-gray-600 border-gray-600' }
+    { id: 'OTHER', name: 'Other', color: 'text-gray-600 border-gray-600' }
   ];
 
   const handleRequirementToggle = (requirementId: string) => {

@@ -71,41 +71,43 @@ export function CourseItem({
       }`}
     >
       <CardContent className="p-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-            <div className="flex items-center gap-2">
-              {onToggleCompletion && (
-                <Checkbox
-                  checked={course.isCompleted}
-                  onCheckedChange={handleCompletionToggle}
-                />
-              )}
-              <div>
-                <div className={`font-medium ${course.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
-                  {course.code}
-                </div>
-                <div className={`text-sm ${course.isCompleted ? 'line-through text-muted-foreground' : 'text-muted-foreground'}`}>
-                  {course.name}
-                </div>
+        <div className="flex items-start gap-3">
+          <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+          
+          <div className="flex items-start gap-2 flex-1 min-w-0">
+            {onToggleCompletion && (
+              <Checkbox
+                checked={course.isCompleted}
+                onCheckedChange={handleCompletionToggle}
+                className="flex-shrink-0 mt-1"
+              />
+            )}
+            
+            <div className="flex-1 min-w-0">
+              <div className={`font-medium text-sm break-words ${course.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                {course.code}
+              </div>
+              <div className={`text-xs break-words ${course.isCompleted ? 'line-through text-muted-foreground' : 'text-muted-foreground'}`}>
+                {course.name}
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-1 mt-2">
+                {getMajorRequirementBadges()}
+                <Badge variant="outline" className="text-xs">
+                  {course.credits} credits
+                </Badge>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            {getMajorRequirementBadges()}
-            <Badge variant="outline">
-              {course.credits} credits
-            </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRemoveClick}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRemoveClick}
+            className="h-6 w-6 p-0 flex-shrink-0"
+          >
+            <X className="h-3 w-3" />
+          </Button>
         </div>
       </CardContent>
     </Card>
