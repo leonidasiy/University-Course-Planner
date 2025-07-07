@@ -37,17 +37,18 @@ export function SemesterList({
       
       <div className="grid gap-6">
         {semesters.map((semester) => (
-          <SemesterCard
-            key={semester.id}
-            semester={semester}
-            availableCourses={availableCourses}
-            onRemove={onRemoveSemester}
-            onClearCourses={onClearSemesterCourses}
-            onAddCourse={onAddCourse}
-            onRemoveCourse={onRemoveCourse}
-            onMoveCourse={onMoveCourse}
-            onToggleCompletion={onToggleCompletion}
-          />
+          <div key={semester.id} data-semester-id={semester.id}>
+            <SemesterCard
+              semester={semester}
+              availableCourses={availableCourses}
+              onRemove={onRemoveSemester}
+              onClearCourses={onClearSemesterCourses}
+              onAddCourse={onAddCourse}
+              onRemoveCourse={onRemoveCourse}
+              onMoveCourse={onMoveCourse}
+              onToggleCompletion={onToggleCompletion}
+            />
+          </div>
         ))}
       </div>
     </div>

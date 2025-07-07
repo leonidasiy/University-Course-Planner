@@ -1,15 +1,17 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Navigation } from 'lucide-react';
 import { Course, Semester } from '../types/schedule';
 
 interface CourseSearchProps {
   onSearch: (searchTerm: string) => Array<{semester: Semester, course: Course}>;
+  onNavigateToSemester?: (semesterId: string) => void;
 }
 
-export function CourseSearch({ onSearch }: CourseSearchProps) {
+export function CourseSearch({ onSearch, onNavigateToSemester }: CourseSearchProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [searchResults, setSearchResults] = React.useState<Array<{semester: Semester, course: Course}>>([]);
 
@@ -22,6 +24,18 @@ export function CourseSearch({ onSearch }: CourseSearchProps) {
       setSearchResults(results);
     } else {
       setSearchResults([]);
+    }
+  };
+
+  const handleNavigateToSemester = (semesterId: string) => {
+    if (onNavigateToSemester) {
+      onNavigateToSemester(semesterId);
+    } else {
+      // Fallback: scroll to the semester element
+      const semesterElement = document.querySelector(`[data-semester-id="${semesterId}"]`);
+      if (semesterElement) {
+        semesterElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
   };
 
@@ -53,7 +67,7 @@ export function CourseSearch({ onSearch }: CourseSearchProps) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search for courses..."
+            placeholder="Search for courses by code or name..."
             value={searchTerm}
             onChange={handleSearchChange}
             className="pl-10"
@@ -73,7 +87,7 @@ export function CourseSearch({ onSearch }: CourseSearchProps) {
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">
-                  <div>
+                  <div className="flex-1">
                     <div className={`font-medium ${course.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                       {course.code}
                     </div>
@@ -88,14 +102,26 @@ export function CourseSearch({ onSearch }: CourseSearchProps) {
                     </Badge>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-3 w-3" />
-                  <span>{semester.name}</span>
-                  {course.isCompleted && (
-                    <Badge variant="outline" className="text-green-600 border-green-600">
-                      Completed
-                    </Badge>
-                  )}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    <span>{semester.name}</span>
+                    {course.isCompleted && (
+                      <Badge variant="outline" className="text-green-600 border-green-600">
+                        Completed
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleNavigateToSemester(semester.id)}
+                    className="h-6 px-2 text-xs"
+                    title={`Go to ${semester.name}`}
+                  >
+                    <Navigation className="h-3 w-3 mr-1" />
+                    Go to
+                  </Button>
                 </div>
               </div>
             ))}

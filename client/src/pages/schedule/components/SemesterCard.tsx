@@ -61,6 +61,7 @@ export function SemesterCard({
 }: SemesterCardProps) {
   const [selectedCourseId, setSelectedCourseId] = React.useState<string>('');
   const [clearDialogOpen, setClearDialogOpen] = React.useState(false);
+  const [removeDialogOpen, setRemoveDialogOpen] = React.useState(false);
 
   const totalCredits = semester.courses.reduce((sum, course) => sum + course.credits, 0);
   const completedCredits = semester.courses
@@ -120,6 +121,7 @@ export function SemesterCard({
 
   const handleRemoveClick = () => {
     onRemove(semester.id);
+    setRemoveDialogOpen(false);
   };
 
   const handleClearCoursesClick = () => {
@@ -207,15 +209,40 @@ export function SemesterCard({
               </Dialog>
             )}
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleRemoveClick}
-              className="h-8 w-8 p-0"
-              title="Remove semester"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <Dialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  title="Remove semester"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Semester</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p>Are you sure you want to delete {semester.name}?</p>
+                  {semester.courses.length > 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      This semester contains {semester.courses.length} course{semester.courses.length !== 1 ? 's' : ''}. 
+                      All courses will be moved back to the course library.
+                    </p>
+                  )}
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={() => setRemoveDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button variant="destructive" onClick={handleRemoveClick}>
+                      Delete Semester
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </CardHeader>
@@ -228,7 +255,7 @@ export function SemesterCard({
               value={selectedCourseId}
               onValueChange={handleComboboxValueChange}
               placeholder="Select a course to add..."
-              searchPlaceholder="Search courses..."
+              searchPlaceholder="Search courses by code or name..."
               emptyText="No courses found."
               className="flex-1"
             />

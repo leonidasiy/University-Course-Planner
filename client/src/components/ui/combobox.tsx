@@ -30,8 +30,27 @@ export function Combobox({
   className
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const selectedOption = options.find((option) => option.value === value);
+
+  // Filter options based on search term
+  const filteredOptions = React.useMemo(() => {
+    if (!searchTerm.trim()) return options;
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return options.filter(option => 
+      option.label.toLowerCase().includes(lowerSearchTerm) ||
+      option.value.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [options, searchTerm]);
+
+  const handleSelect = (currentValue: string) => {
+    const newValue = currentValue === value ? "" : currentValue;
+    onValueChange(newValue);
+    setOpen(false);
+    setSearchTerm('');
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -46,31 +65,35 @@ export function Combobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+      <PopoverContent className="w-full p-0" style={{ width: 'var(--radix-popover-trigger-width)' }}>
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder={searchPlaceholder}
+            value={searchTerm}
+            onValueChange={setSearchTerm}
+          />
           <CommandList>
-            <CommandEmpty>{emptyText}</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    onValueChange(currentValue === value ? "" : currentValue);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === option.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+            {filteredOptions.length === 0 ? (
+              <CommandEmpty>{emptyText}</CommandEmpty>
+            ) : (
+              <CommandGroup>
+                {filteredOptions.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onSelect={handleSelect}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === option.value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

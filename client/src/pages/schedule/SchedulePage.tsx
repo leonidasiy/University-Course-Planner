@@ -25,6 +25,22 @@ export function SchedulePage() {
     requirementCredits
   } = useSchedule();
 
+  const handleNavigateToSemester = (semesterId: string) => {
+    const semesterElement = document.querySelector(`[data-semester-id="${semesterId}"]`);
+    if (semesterElement) {
+      semesterElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Add a brief highlight effect
+      const card = semesterElement.querySelector('.border-l-4');
+      if (card) {
+        card.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+        setTimeout(() => {
+          card.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+        }, 2000);
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -62,7 +78,10 @@ export function SchedulePage() {
         </div>
         
         <div className="lg:col-span-1 space-y-6">
-          <CourseSearch onSearch={searchCourseInSemesters} />
+          <CourseSearch 
+            onSearch={searchCourseInSemesters}
+            onNavigateToSemester={handleNavigateToSemester}
+          />
           
           <CourseLibrary
             courses={availableCourses}
