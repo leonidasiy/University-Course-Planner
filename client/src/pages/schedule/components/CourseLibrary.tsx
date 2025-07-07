@@ -86,7 +86,7 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
       );
     });
 
-    // Sort courses by requirement priority, then by code
+    // Sort courses by requirement priority, then alphabetically by code
     return filtered.sort((a, b) => {
       const priorityA = getRequirementPriority(a);
       const priorityB = getRequirementPriority(b);
@@ -95,7 +95,7 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
         return priorityA - priorityB;
       }
       
-      // If same priority, sort by course code
+      // If same priority, sort alphabetically by course code
       return a.code.localeCompare(b.code);
     });
   }, [courses, selectedRequirements, showCompleted, showIncomplete]);

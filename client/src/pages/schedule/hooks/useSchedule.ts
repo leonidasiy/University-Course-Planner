@@ -23,32 +23,31 @@ const SAMPLE_COURSES: Course[] = [
   { id: '18', code: 'MATH301', name: 'Linear Algebra', credits: 3, majorRequirements: ['DSCT', 'CCC'], isCompleted: false },
 ];
 
-// Generate Fall and Spring semesters from 2024 Fall to 2028 Spring
+// Generate specific semesters: 2024 Fall, 2025 Spring, 2025 Fall, 2026 Spring, 2026 Fall, 2027 Spring, 2027 Fall, 2028 Spring
 const generateDefaultSemesters = (): Semester[] => {
   const semesters: Semester[] = [];
   let semesterIdCounter = 1000;
 
-  for (let year = 2024; year <= 2028; year++) {
-    // Add Fall semester (but not Fall 2028)
-    if (year < 2028) {
-      semesters.push({
-        id: `semester_${semesterIdCounter++}`,
-        name: `Fall ${year}`,
-        type: 'Fall',
-        year,
-        courses: []
-      });
-    }
-    
-    // Add Spring semester (including Spring 2028)
+  const semesterSequence = [
+    { year: 2024, type: 'Fall' as const },
+    { year: 2025, type: 'Spring' as const },
+    { year: 2025, type: 'Fall' as const },
+    { year: 2026, type: 'Spring' as const },
+    { year: 2026, type: 'Fall' as const },
+    { year: 2027, type: 'Spring' as const },
+    { year: 2027, type: 'Fall' as const },
+    { year: 2028, type: 'Spring' as const }
+  ];
+
+  semesterSequence.forEach(({ year, type }) => {
     semesters.push({
       id: `semester_${semesterIdCounter++}`,
-      name: `Spring ${year}`,
-      type: 'Spring',
+      name: `${type} ${year}`,
+      type,
       year,
       courses: []
     });
-  }
+  });
 
   return semesters;
 };

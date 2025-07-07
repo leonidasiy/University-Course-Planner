@@ -15,6 +15,12 @@ export function CourseSearch({ onSearch, onNavigateToSemester }: CourseSearchPro
   const [searchTerm, setSearchTerm] = React.useState('');
   const [searchResults, setSearchResults] = React.useState<Array<{semester: Semester, course: Course}>>([]);
 
+  // Clear search on component mount/refresh
+  React.useEffect(() => {
+    setSearchTerm('');
+    setSearchResults([]);
+  }, []);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setSearchTerm(term);
