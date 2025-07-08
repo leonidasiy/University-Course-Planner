@@ -35,13 +35,13 @@ const DSCT_COURSES: Course[] = [
 // Define the exact required semesters
 const REQUIRED_SEMESTERS = [
   { year: 2024, type: 'Fall' as const, id: 'semester_2024_fall' },
+  { year: 2024, type: 'Winter' as const, id: 'semester_2024_winter' },
   { year: 2025, type: 'Spring' as const, id: 'semester_2025_spring' },
+  { year: 2025, type: 'Summer' as const, id: 'semester_2025_summer' },
   { year: 2025, type: 'Fall' as const, id: 'semester_2025_fall' },
+  { year: 2025, type: 'Winter' as const, id: 'semester_2025_winter' },
   { year: 2026, type: 'Spring' as const, id: 'semester_2026_spring' },
-  { year: 2026, type: 'Fall' as const, id: 'semester_2026_fall' },
-  { year: 2027, type: 'Spring' as const, id: 'semester_2027_spring' },
-  { year: 2027, type: 'Fall' as const, id: 'semester_2027_fall' },
-  { year: 2028, type: 'Spring' as const, id: 'semester_2028_spring' }
+  { year: 2026, type: 'Summer' as const, id: 'semester_2026_summer' }
 ];
 
 // Function to sort semesters by academic year sequence
