@@ -32,27 +32,27 @@ const DSCT_COURSES: Course[] = [
   { id: '22', code: 'MATH4425', name: 'Introductory Time Series', credits: 3, majorRequirements: ['DSCT'], isCompleted: false }
 ];
 
-// Define the exact required semesters
+// Define the exact required semesters (Fall and Spring only)
 const REQUIRED_SEMESTERS = [
   { year: 2024, type: 'Fall' as const, id: 'semester_2024_fall' },
-  { year: 2024, type: 'Winter' as const, id: 'semester_2024_winter' },
   { year: 2025, type: 'Spring' as const, id: 'semester_2025_spring' },
-  { year: 2025, type: 'Summer' as const, id: 'semester_2025_summer' },
   { year: 2025, type: 'Fall' as const, id: 'semester_2025_fall' },
-  { year: 2025, type: 'Winter' as const, id: 'semester_2025_winter' },
   { year: 2026, type: 'Spring' as const, id: 'semester_2026_spring' },
-  { year: 2026, type: 'Summer' as const, id: 'semester_2026_summer' }
+  { year: 2026, type: 'Fall' as const, id: 'semester_2026_fall' },
+  { year: 2027, type: 'Spring' as const, id: 'semester_2027_spring' },
+  { year: 2027, type: 'Fall' as const, id: 'semester_2027_fall' },
+  { year: 2028, type: 'Spring' as const, id: 'semester_2028_spring' }
 ];
 
 // Function to sort semesters by academic year sequence
 const sortSemesters = (semesters: Semester[]): Semester[] => {
   return [...semesters].sort((a, b) => {
-    // Calculate academic year (Fall/Winter belong to the academic year that starts)
+    // Calculate academic year (Fall belongs to the academic year that starts)
     const getAcademicYear = (semester: Semester) => {
-      if (semester.type === 'Fall' || semester.type === 'Winter') {
+      if (semester.type === 'Fall') {
         return semester.year;
       } else {
-        return semester.year - 1; // Spring/Summer belong to previous academic year
+        return semester.year - 1; // Spring belongs to previous academic year
       }
     };
 
@@ -63,8 +63,8 @@ const sortSemesters = (semesters: Semester[]): Semester[] => {
       return academicYearA - academicYearB;
     }
 
-    // Within the same academic year: Fall -> Winter -> Spring -> Summer
-    const order = { 'Fall': 1, 'Winter': 2, 'Spring': 3, 'Summer': 4 };
+    // Within the same academic year: Fall -> Spring
+    const order = { 'Fall': 1, 'Spring': 2 };
     return order[a.type] - order[b.type];
   });
 };

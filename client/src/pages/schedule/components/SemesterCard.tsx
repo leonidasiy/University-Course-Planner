@@ -6,7 +6,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { Semester, Course } from '../types/schedule';
-import { Trash2, Calendar, Snowflake, Sun, Flower, Leaf, Plus, Eraser } from 'lucide-react';
+import { Trash2, Calendar, Sun, Flower, Leaf, Plus, Eraser } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: Semester;
@@ -23,8 +23,6 @@ const getSemesterIcon = (type: string) => {
   switch (type) {
     case 'Fall':
       return <Leaf className="h-5 w-5 text-orange-600" />;
-    case 'Winter':
-      return <Snowflake className="h-5 w-5 text-blue-600" />;
     case 'Spring':
       return <Flower className="h-5 w-5 text-green-600" />;
     case 'Summer':
@@ -38,8 +36,6 @@ const getSemesterColor = (type: string) => {
   switch (type) {
     case 'Fall':
       return 'border-l-orange-500';
-    case 'Winter':
-      return 'border-l-blue-500';
     case 'Spring':
       return 'border-l-green-500';
     case 'Summer':
