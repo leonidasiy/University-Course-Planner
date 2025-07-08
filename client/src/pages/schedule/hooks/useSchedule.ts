@@ -3,15 +3,14 @@ import { Semester, Course, ScheduleData } from '../types/schedule';
 import { loadScheduleData, saveScheduleData } from '../services/scheduleApi';
 
 const DSCT_COURSES: Course[] = [
-  // Major Pre-requisite courses
-  { id: '1', code: 'MATH1014', name: 'Calculus II', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '2', code: 'MATH1023', name: 'Honors Calculus I', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '3', code: 'COMP1022P', name: 'Introduction to Computing with Java', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  // Major Pre-requisite courses (DSCT & COSC shared)
+  { id: '1', code: 'MATH1014', name: 'Calculus II', credits: 3, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  { id: '2', code: 'MATH1023', name: 'Honors Calculus I', credits: 3, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  { id: '3', code: 'COMP1022P', name: 'Introduction to Computing with Java', credits: 3, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
   
-  // Required Courses
+  // Required Courses - DSCT only
   { id: '4', code: 'DSCT4900', name: 'Academic and Professional Development', credits: 0, majorRequirements: ['DSCT'], isCompleted: false },
   { id: '5', code: 'MATH2023', name: 'Multivariable Calculus', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '6', code: 'MATH2121', name: 'Linear Algebra', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
   { id: '7', code: 'MATH2411', name: 'Applied Statistics', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
   { id: '8', code: 'MATH2421', name: 'Probability', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
   { id: '9', code: 'MATH3322', name: 'Matrix Computation', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
@@ -19,17 +18,32 @@ const DSCT_COURSES: Course[] = [
   { id: '11', code: 'MATH3423', name: 'Statistical Inference', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
   { id: '12', code: 'MATH3424', name: 'Regression Analysis', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
   { id: '13', code: 'MATH4432', name: 'Statistical Machine Learning', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '14', code: 'COMP5212', name: 'Machine Learning', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '15', code: 'COMP4981', name: 'Final Year Project', credits: 6, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '16', code: 'COMP2011', name: 'Programming with C++', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '17', code: 'COMP2012', name: 'Object-Oriented Programming and Data Structures', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '18', code: 'COMP2711', name: 'Discrete Mathematical Tools for Computer Science', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '19', code: 'COMP3711H', name: 'Honors Design and Analysis of Algorithms', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '22', code: 'MATH4425', name: 'Introductory Time Series', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
   
-  // Electives
-  { id: '20', code: 'COMP2211', name: 'Exploring Artificial Intelligence', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '21', code: 'COMP4222', name: 'Machine Learning with Structured Data', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '22', code: 'MATH4425', name: 'Introductory Time Series', credits: 3, majorRequirements: ['DSCT'], isCompleted: false }
+  // Shared Required Courses (DSCT & COSC)
+  { id: '6', code: 'MATH2121', name: 'Linear Algebra', credits: 4, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  { id: '16', code: 'COMP2011', name: 'Programming with C++', credits: 4, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  { id: '17', code: 'COMP2012', name: 'Object-Oriented Programming and Data Structures', credits: 4, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  { id: '18', code: 'COMP2711', name: 'Discrete Mathematical Tools for Computer Science', credits: 4, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  { id: '19', code: 'COMP3711H', name: 'Honors Design and Analysis of Algorithms', credits: 4, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  
+  // Shared Electives (DSCT & COSC)
+  { id: '14', code: 'COMP5212', name: 'Machine Learning', credits: 3, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  { id: '15', code: 'COMP4981', name: 'Final Year Project', credits: 6, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  { id: '20', code: 'COMP2211', name: 'Exploring Artificial Intelligence', credits: 3, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  { id: '21', code: 'COMP4222', name: 'Machine Learning with Structured Data', credits: 3, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
+  
+  // COSC-only Required Courses
+  { id: '23', code: 'COMP2611', name: 'Computer Organization', credits: 4, majorRequirements: ['COSC'], isCompleted: false },
+  { id: '24', code: 'COMP3111', name: 'Software Engineering', credits: 4, majorRequirements: ['COSC'], isCompleted: false },
+  { id: '25', code: 'COMP3511', name: 'Operating Systems', credits: 3, majorRequirements: ['COSC'], isCompleted: false },
+  { id: '26', code: 'COMP4900', name: 'Academic and Professional Development', credits: 0, majorRequirements: ['COSC'], isCompleted: false },
+  { id: '27', code: 'ISOM2500', name: 'Business Statistics', credits: 3, majorRequirements: ['COSC'], isCompleted: false },
+  
+  // COSC-only Electives
+  { id: '28', code: 'COMP3031', name: 'Principles of Programming Languages', credits: 3, majorRequirements: ['COSC'], isCompleted: false },
+  { id: '29', code: 'COMP4211', name: 'Machine Learning', credits: 3, majorRequirements: ['COSC'], isCompleted: false },
+  { id: '30', code: 'COMP4332', name: 'Big Data Mining and Management', credits: 3, majorRequirements: ['COSC'], isCompleted: false }
 ];
 
 // Define the exact required semesters (Fall and Spring only)
