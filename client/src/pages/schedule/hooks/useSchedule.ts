@@ -2,25 +2,34 @@ import * as React from 'react';
 import { Semester, Course, ScheduleData } from '../types/schedule';
 import { loadScheduleData, saveScheduleData } from '../services/scheduleApi';
 
-const SAMPLE_COURSES: Course[] = [
-  { id: '1', code: 'CS101', name: 'Introduction to Computer Science', credits: 3, majorRequirements: ['COSC'], isCompleted: false },
-  { id: '2', code: 'MATH151', name: 'Calculus I', credits: 4, majorRequirements: [], isCompleted: false },
-  { id: '3', code: 'ENGL101', name: 'English Composition', credits: 3, majorRequirements: ['CCC'], isCompleted: false },
-  { id: '4', code: 'HIST201', name: 'World History', credits: 3, majorRequirements: ['CCC'], isCompleted: false },
-  { id: '5', code: 'CS201', name: 'Data Structures', credits: 3, majorRequirements: ['COSC'], isCompleted: false },
-  { id: '6', code: 'MATH152', name: 'Calculus II', credits: 4, majorRequirements: [], isCompleted: false },
-  { id: '7', code: 'PHYS101', name: 'Physics I', credits: 4, majorRequirements: ['CCC'], isCompleted: false },
-  { id: '8', code: 'CS301', name: 'Algorithms', credits: 3, majorRequirements: ['COSC'], isCompleted: false },
-  { id: '9', code: 'DSCT101', name: 'Introduction to Data Science', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '10', code: 'DSCT201', name: 'Statistical Computing', credits: 3, majorRequirements: ['DSCT', 'COSC'], isCompleted: false },
-  { id: '11', code: 'DSCT301', name: 'Machine Learning', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
-  { id: '12', code: 'STAT101', name: 'Statistics I', credits: 3, majorRequirements: ['DSCT', 'CCC'], isCompleted: false },
-  { id: '13', code: 'PHIL101', name: 'Introduction to Philosophy', credits: 3, majorRequirements: ['CCC'], isCompleted: false },
-  { id: '14', code: 'PSYC101', name: 'General Psychology', credits: 3, majorRequirements: ['CCC'], isCompleted: false },
-  { id: '15', code: 'ECON101', name: 'Principles of Economics', credits: 3, majorRequirements: ['CCC'], isCompleted: false },
-  { id: '16', code: 'BIOL101', name: 'General Biology', credits: 4, majorRequirements: ['CCC'], isCompleted: false },
-  { id: '17', code: 'CS205', name: 'Database Systems', credits: 3, majorRequirements: ['COSC', 'DSCT'], isCompleted: false },
-  { id: '18', code: 'MATH301', name: 'Linear Algebra', credits: 3, majorRequirements: ['DSCT', 'CCC'], isCompleted: false },
+const DSCT_COURSES: Course[] = [
+  // Major Pre-requisite courses
+  { id: '1', code: 'MATH1014', name: 'Calculus II', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '2', code: 'MATH1023', name: 'Honors Calculus I', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '3', code: 'COMP1022P', name: 'Introduction to Computing with Java', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  
+  // Required Courses
+  { id: '4', code: 'DSCT4900', name: 'Academic and Professional Development', credits: 0, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '5', code: 'MATH2023', name: 'Multivariable Calculus', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '6', code: 'MATH2121', name: 'Linear Algebra', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '7', code: 'MATH2411', name: 'Applied Statistics', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '8', code: 'MATH2421', name: 'Probability', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '9', code: 'MATH3322', name: 'Matrix Computation', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '10', code: 'MATH3332', name: 'Data Analytic Tools', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '11', code: 'MATH3423', name: 'Statistical Inference', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '12', code: 'MATH3424', name: 'Regression Analysis', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '13', code: 'MATH4432', name: 'Statistical Machine Learning', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '14', code: 'COMP5212', name: 'Machine Learning', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '15', code: 'COMP4981', name: 'Final Year Project', credits: 6, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '16', code: 'COMP2011', name: 'Programming with C++', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '17', code: 'COMP2012', name: 'Object-Oriented Programming and Data Structures', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '18', code: 'COMP2711', name: 'Discrete Mathematical Tools for Computer Science', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '19', code: 'COMP3711H', name: 'Honors Design and Analysis of Algorithms', credits: 4, majorRequirements: ['DSCT'], isCompleted: false },
+  
+  // Electives
+  { id: '20', code: 'COMP2211', name: 'Exploring Artificial Intelligence', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '21', code: 'COMP4222', name: 'Machine Learning with Structured Data', credits: 3, majorRequirements: ['DSCT'], isCompleted: false },
+  { id: '22', code: 'MATH4425', name: 'Introductory Time Series', credits: 3, majorRequirements: ['DSCT'], isCompleted: false }
 ];
 
 // Define the exact required semesters
@@ -35,11 +44,27 @@ const REQUIRED_SEMESTERS = [
   { year: 2028, type: 'Spring' as const, id: 'semester_2028_spring' }
 ];
 
-// Function to sort semesters chronologically
+// Function to sort semesters by academic year sequence
 const sortSemesters = (semesters: Semester[]): Semester[] => {
   return [...semesters].sort((a, b) => {
-    if (a.year !== b.year) return a.year - b.year;
-    const order = { 'Winter': 1, 'Spring': 2, 'Summer': 3, 'Fall': 4 };
+    // Calculate academic year (Fall/Winter belong to the academic year that starts)
+    const getAcademicYear = (semester: Semester) => {
+      if (semester.type === 'Fall' || semester.type === 'Winter') {
+        return semester.year;
+      } else {
+        return semester.year - 1; // Spring/Summer belong to previous academic year
+      }
+    };
+
+    const academicYearA = getAcademicYear(a);
+    const academicYearB = getAcademicYear(b);
+
+    if (academicYearA !== academicYearB) {
+      return academicYearA - academicYearB;
+    }
+
+    // Within the same academic year: Fall -> Winter -> Spring -> Summer
+    const order = { 'Fall': 1, 'Winter': 2, 'Spring': 3, 'Summer': 4 };
     return order[a.type] - order[b.type];
   });
 };
@@ -68,7 +93,7 @@ const ensureRequiredSemesters = (existingSemesters: Semester[]): Semester[] => {
 export function useSchedule() {
   const [scheduleData, setScheduleData] = React.useState<ScheduleData>({
     semesters: [],
-    availableCourses: [...SAMPLE_COURSES]
+    availableCourses: [...DSCT_COURSES]
   });
   const [isLoading, setIsLoading] = React.useState(true);
   const [saveTimeout, setSaveTimeout] = React.useState<NodeJS.Timeout | null>(null);
@@ -85,7 +110,7 @@ export function useSchedule() {
         
         setScheduleData({
           semesters: requiredSemesters,
-          availableCourses: data.availableCourses.length > 0 ? data.availableCourses : [...SAMPLE_COURSES]
+          availableCourses: data.availableCourses.length > 0 ? data.availableCourses : [...DSCT_COURSES]
         });
         
         console.log('Schedule data loaded and required semesters ensured');
@@ -93,7 +118,7 @@ export function useSchedule() {
         console.error('Failed to load schedule data, using defaults:', error);
         setScheduleData({
           semesters: ensureRequiredSemesters([]),
-          availableCourses: [...SAMPLE_COURSES]
+          availableCourses: [...DSCT_COURSES]
         });
       } finally {
         setIsLoading(false);
