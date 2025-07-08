@@ -35,21 +35,24 @@ const REQUIRED_SEMESTERS = [
   { year: 2028, type: 'Spring' as const, id: 'semester_2028_spring' }
 ];
 
+// Function to sort semesters chronologically
+const sortSemesters = (semesters: Semester[]): Semester[] => {
+  return [...semesters].sort((a, b) => {
+    if (a.year !== b.year) return a.year - b.year;
+    const order = { 'Winter': 1, 'Spring': 2, 'Summer': 3, 'Fall': 4 };
+    return order[a.type] - order[b.type];
+  });
+};
+
 // Generate the required semesters ensuring they always exist
 const ensureRequiredSemesters = (existingSemesters: Semester[]): Semester[] => {
-  const existingSemesterMap = new Map(existingSemesters.map(s => [`${s.year}_${s.type}`, s]));
-  const requiredSemesters: Semester[] = [];
+  const existingSemesterMap = new Map(existingSemesters.map(s => [s.id, s]));
+  const allSemesters: Semester[] = [...existingSemesters];
 
   REQUIRED_SEMESTERS.forEach(({ year, type, id }) => {
-    const key = `${year}_${type}`;
-    const existing = existingSemesterMap.get(key);
-    
-    if (existing) {
-      // Use existing semester with its courses
-      requiredSemesters.push(existing);
-    } else {
-      // Create new required semester
-      requiredSemesters.push({
+    if (!existingSemesterMap.has(id)) {
+      // Add missing required semester
+      allSemesters.push({
         id,
         name: `${type} ${year}`,
         type,
@@ -59,7 +62,7 @@ const ensureRequiredSemesters = (existingSemesters: Semester[]): Semester[] => {
     }
   });
 
-  return requiredSemesters;
+  return sortSemesters(allSemesters);
 };
 
 export function useSchedule() {
@@ -121,7 +124,7 @@ export function useSchedule() {
 
   // Update data and trigger auto-save
   const updateScheduleData = React.useCallback((newData: ScheduleData) => {
-    // Always ensure required semesters exist
+    // Always ensure required semesters exist and sort all semesters
     const updatedData = {
       ...newData,
       semesters: ensureRequiredSemesters(newData.semesters)
@@ -134,15 +137,15 @@ export function useSchedule() {
   }, [autoSave, isLoading]);
 
   const addSemester = (type: 'Fall' | 'Winter' | 'Spring' | 'Summer', year: number) => {
-    // Check if this is one of the required semesters - if so, don't add duplicate
-    const isRequired = REQUIRED_SEMESTERS.some(req => req.year === year && req.type === type);
-    if (isRequired) {
-      console.log('This semester is already required and exists');
+    // Check if a semester with the same type and year already exists
+    const existingSemester = scheduleData.semesters.find(s => s.type === type && s.year === year);
+    if (existingSemester) {
+      console.log('A semester with this type and year already exists');
       return;
     }
 
     const newSemester: Semester = {
-      id: Date.now().toString(),
+      id: `semester_${year}_${type.toLowerCase()}_${Date.now()}`,
       name: `${type} ${year}`,
       type,
       year,
@@ -151,11 +154,7 @@ export function useSchedule() {
     
     const newData = {
       ...scheduleData,
-      semesters: [...scheduleData.semesters, newSemester].sort((a, b) => {
-        if (a.year !== b.year) return a.year - b.year;
-        const order = { 'Winter': 1, 'Spring': 2, 'Summer': 3, 'Fall': 4 };
-        return order[a.type] - order[b.type];
-      })
+      semesters: sortSemesters([...scheduleData.semesters, newSemester])
     };
     
     updateScheduleData(newData);
