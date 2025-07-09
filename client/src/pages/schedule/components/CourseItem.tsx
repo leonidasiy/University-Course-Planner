@@ -37,7 +37,8 @@ export function CourseItem({
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleRemoveClick = () => {
+  const handleRemoveClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (semesterId && onRemove) {
       onRemove(semesterId, course.id);
     } else if (onRemoveFromLibrary) {
@@ -45,23 +46,17 @@ export function CourseItem({
     }
   };
 
-  const handleCompletionToggle = () => {
+  const handleCompletionToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (onToggleCompletion) {
       onToggleCompletion(course.id);
     }
   };
 
-  const handleSelectionChange = (checked: boolean) => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only handle selection if onSelect is provided
     if (onSelect) {
-      onSelect(course.id, checked);
-    }
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    // Handle keyboard shortcuts for selection
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      handleSelectionChange(!isSelected);
+      onSelect(course.id, !isSelected);
     }
   };
 
@@ -85,26 +80,19 @@ export function CourseItem({
     <Card
       draggable
       onDragStart={handleDragStart}
-      onClick={handleClick}
-      className={`cursor-move hover:shadow-md transition-all ${
+      onClick={handleCardClick}
+      className={`cursor-pointer hover:shadow-md transition-all ${
         course.isCompleted ? 'bg-green-50 border-green-200' : ''
       } ${
-        isSelected ? 'ring-2 ring-primary ring-offset-2 bg-primary/5' : ''
+        isSelected ? 'ring-2 ring-primary ring-offset-2 bg-primary/10 shadow-md' : ''
+      } ${
+        onSelect ? 'hover:bg-accent/50' : 'cursor-move'
       }`}
     >
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
           <div className="flex items-center gap-2">
             <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
-            
-            {onSelect && (
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={handleSelectionChange}
-                className="flex-shrink-0 mt-1"
-                onClick={(e) => e.stopPropagation()}
-              />
-            )}
           </div>
           
           <div className="flex items-start gap-2 flex-1 min-w-0">
@@ -113,7 +101,7 @@ export function CourseItem({
                 checked={course.isCompleted}
                 onCheckedChange={handleCompletionToggle}
                 className="flex-shrink-0 mt-1"
-                onClick={(e) => e.stopPropagation()}
+                onClick={handleCompletionToggle}
               />
             )}
             
@@ -130,6 +118,11 @@ export function CourseItem({
                 <Badge variant="outline" className="text-xs">
                   {course.credits} credits
                 </Badge>
+                {isSelected && (
+                  <Badge variant="default" className="text-xs bg-primary text-primary-foreground">
+                    Selected
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
@@ -137,10 +130,7 @@ export function CourseItem({
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRemoveClick();
-            }}
+            onClick={handleRemoveClick}
             className="h-6 w-6 p-0 flex-shrink-0"
           >
             <X className="h-3 w-3" />

@@ -383,7 +383,7 @@ export function SemesterCard({
         ) : (
           <div className="space-y-2">
             <div className="text-xs text-muted-foreground">
-              Tip: Hold Ctrl/Cmd and click to select multiple courses
+              Tip: Click on course cards to select/deselect them
             </div>
             {semester.courses.map((course) => (
               <CourseItem

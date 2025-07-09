@@ -283,7 +283,7 @@ export function CourseLibrary({
             ) : (
               <div className="space-y-2">
                 <div className="text-xs text-muted-foreground mb-2">
-                  Tip: Hold Ctrl/Cmd and click to select multiple courses, or use the select all button above
+                  Tip: Click on course cards to select/deselect them
                 </div>
                 {filteredAndSortedCourses.map((course) => (
                   <CourseItem
