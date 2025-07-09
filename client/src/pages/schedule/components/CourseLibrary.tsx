@@ -4,16 +4,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { CourseFilters } from './CourseFilters';
 import { Course } from '../types/schedule';
-import { Plus, Library } from 'lucide-react';
+import { Plus, Library, Trash2, CheckSquare, Square } from 'lucide-react';
 
 interface CourseLibraryProps {
   courses: Course[];
+  selectedCourses: Set<string>;
+  onSelect: (courseId: string, isSelected: boolean) => void;
+  onSelectAll: (courses: Course[]) => void;
+  onClearSelection: () => void;
   onAddCourse: (course: Course) => void;
   onRemoveCourse: (courseId: string) => void;
+  onRemoveSelected: () => void;
   onToggleCompletion: (courseId: string) => void;
 }
 
@@ -25,7 +31,17 @@ const getRequirementPriority = (course: Course): number => {
   return 4; // Other/No requirements
 };
 
-export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCompletion }: CourseLibraryProps) {
+export function CourseLibrary({ 
+  courses, 
+  selectedCourses,
+  onSelect,
+  onSelectAll,
+  onClearSelection,
+  onAddCourse, 
+  onRemoveCourse,
+  onRemoveSelected,
+  onToggleCompletion 
+}: CourseLibraryProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedRequirements, setSelectedRequirements] = React.useState<string[]>([]);
   const [showCompleted, setShowCompleted] = React.useState(true);
@@ -100,6 +116,27 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
     });
   }, [courses, selectedRequirements, showCompleted, showIncomplete]);
 
+  const selectedCoursesInLibrary = React.useMemo(() => {
+    return filteredAndSortedCourses.filter(course => selectedCourses.has(course.id));
+  }, [filteredAndSortedCourses, selectedCourses]);
+
+  const allCoursesSelected = React.useMemo(() => {
+    return filteredAndSortedCourses.length > 0 && 
+           filteredAndSortedCourses.every(course => selectedCourses.has(course.id));
+  }, [filteredAndSortedCourses, selectedCourses]);
+
+  const handleSelectAll = () => {
+    if (allCoursesSelected) {
+      onClearSelection();
+    } else {
+      onSelectAll(filteredAndSortedCourses);
+    }
+  };
+
+  const handleCourseSelect = (courseId: string, isSelected: boolean) => {
+    onSelect(courseId, isSelected);
+  };
+
   return (
     <div className="space-y-4">
       <CourseFilters
@@ -117,83 +154,123 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
             <CardTitle className="flex items-center gap-2">
               <Library className="h-5 w-5" />
               Course Library ({filteredAndSortedCourses.length})
+              {selectedCoursesInLibrary.length > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {selectedCoursesInLibrary.length} selected
+                </Badge>
+              )}
             </CardTitle>
             
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="flex items-center gap-1">
-                  <Plus className="h-4 w-4" />
-                  Add Course
+            <div className="flex items-center gap-2">
+              {filteredAndSortedCourses.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="flex items-center gap-1"
+                >
+                  {allCoursesSelected ? (
+                    <>
+                      <CheckSquare className="h-4 w-4" />
+                      Deselect All
+                    </>
+                  ) : (
+                    <>
+                      <Square className="h-4 w-4" />
+                      Select All
+                    </>
+                  )}
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Add New Course</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="course-code">Course Code</Label>
-                    <Input
-                      id="course-code"
-                      value={newCourse.code}
-                      onChange={(e) => setNewCourse({ ...newCourse, code: e.target.value })}
-                      placeholder="e.g., CS101"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="course-name">Course Name</Label>
-                    <Input
-                      id="course-name"
-                      value={newCourse.name}
-                      onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-                      placeholder="e.g., Introduction to Computer Science"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="course-credits">Credits</Label>
-                    <Input
-                      id="course-credits"
-                      type="number"
-                      min="1"
-                      max="6"
-                      value={newCourse.credits}
-                      onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 3 })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Major Requirements (select multiple)</Label>
-                    <div className="space-y-2 mt-2">
-                      {['DSCT', 'COSC', 'CCC'].map((req) => (
-                        <div key={req} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`new-${req}`}
-                            checked={newCourse.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')}
-                            onCheckedChange={() => handleRequirementToggle(req as 'DSCT' | 'COSC' | 'CCC')}
-                          />
-                          <label htmlFor={`new-${req}`} className="text-sm">
-                            {req} ({req === 'DSCT' ? 'Data Science and Technology' : 
-                                   req === 'COSC' ? 'Computer Science' : 'Common Core Courses'})
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="completed"
-                      checked={newCourse.isCompleted}
-                      onCheckedChange={(checked) => setNewCourse({ ...newCourse, isCompleted: !!checked })}
-                    />
-                    <label htmlFor="completed" className="text-sm">
-                      Mark as completed
-                    </label>
-                  </div>
-                  <Button onClick={handleAddCourse} className="w-full">
+              )}
+              
+              {selectedCoursesInLibrary.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={onRemoveSelected}
+                  className="flex items-center gap-1"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Remove Selected ({selectedCoursesInLibrary.length})
+                </Button>
+              )}
+              
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="flex items-center gap-1">
+                    <Plus className="h-4 w-4" />
                     Add Course
                   </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add New Course</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="course-code">Course Code</Label>
+                      <Input
+                        id="course-code"
+                        value={newCourse.code}
+                        onChange={(e) => setNewCourse({ ...newCourse, code: e.target.value })}
+                        placeholder="e.g., CS101"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="course-name">Course Name</Label>
+                      <Input
+                        id="course-name"
+                        value={newCourse.name}
+                        onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
+                        placeholder="e.g., Introduction to Computer Science"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="course-credits">Credits</Label>
+                      <Input
+                        id="course-credits"
+                        type="number"
+                        min="1"
+                        max="6"
+                        value={newCourse.credits}
+                        onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 3 })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Major Requirements (select multiple)</Label>
+                      <div className="space-y-2 mt-2">
+                        {['DSCT', 'COSC', 'CCC'].map((req) => (
+                          <div key={req} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`new-${req}`}
+                              checked={newCourse.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')}
+                              onCheckedChange={() => handleRequirementToggle(req as 'DSCT' | 'COSC' | 'CCC')}
+                            />
+                            <label htmlFor={`new-${req}`} className="text-sm">
+                              {req} ({req === 'DSCT' ? 'Data Science and Technology' : 
+                                     req === 'COSC' ? 'Computer Science' : 'Common Core Courses'})
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="completed"
+                        checked={newCourse.isCompleted}
+                        onCheckedChange={(checked) => setNewCourse({ ...newCourse, isCompleted: !!checked })}
+                      />
+                      <label htmlFor="completed" className="text-sm">
+                        Mark as completed
+                      </label>
+                    </div>
+                    <Button onClick={handleAddCourse} className="w-full">
+                      Add Course
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         
@@ -205,10 +282,15 @@ export function CourseLibrary({ courses, onAddCourse, onRemoveCourse, onToggleCo
               </div>
             ) : (
               <div className="space-y-2">
+                <div className="text-xs text-muted-foreground mb-2">
+                  Tip: Hold Ctrl/Cmd and click to select multiple courses, or use the select all button above
+                </div>
                 {filteredAndSortedCourses.map((course) => (
                   <CourseItem
                     key={course.id}
                     course={course}
+                    isSelected={selectedCourses.has(course.id)}
+                    onSelect={handleCourseSelect}
                     onRemoveFromLibrary={onRemoveCourse}
                     onToggleCompletion={onToggleCompletion}
                   />

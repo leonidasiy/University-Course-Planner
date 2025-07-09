@@ -111,6 +111,7 @@ export function useSchedule() {
   });
   const [isLoading, setIsLoading] = React.useState(true);
   const [saveTimeout, setSaveTimeout] = React.useState<NodeJS.Timeout | null>(null);
+  const [selectedCourses, setSelectedCourses] = React.useState<Set<string>>(new Set());
 
   // Load data on component mount
   React.useEffect(() => {
@@ -174,6 +175,49 @@ export function useSchedule() {
       autoSave(updatedData);
     }
   }, [autoSave, isLoading]);
+
+  // Multi-select functions
+  const toggleCourseSelection = React.useCallback((courseId: string) => {
+    setSelectedCourses(prev => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(courseId)) {
+        newSelected.delete(courseId);
+      } else {
+        newSelected.add(courseId);
+      }
+      return newSelected;
+    });
+  }, []);
+
+  const selectCourse = React.useCallback((courseId: string) => {
+    setSelectedCourses(prev => new Set(prev).add(courseId));
+  }, []);
+
+  const deselectCourse = React.useCallback((courseId: string) => {
+    setSelectedCourses(prev => {
+      const newSelected = new Set(prev);
+      newSelected.delete(courseId);
+      return newSelected;
+    });
+  }, []);
+
+  const clearSelection = React.useCallback(() => {
+    setSelectedCourses(new Set());
+  }, []);
+
+  const selectAllCourses = React.useCallback((courses: Course[]) => {
+    setSelectedCourses(new Set(courses.map(c => c.id)));
+  }, []);
+
+  // Get selected courses from various locations
+  const getSelectedCourses = React.useCallback(() => {
+    const allCourses: Course[] = [...scheduleData.availableCourses];
+    scheduleData.semesters.forEach(semester => {
+      allCourses.push(...semester.courses);
+    });
+    
+    return allCourses.filter(course => selectedCourses.has(course.id));
+  }, [scheduleData, selectedCourses]);
 
   const addSemester = (type: 'Fall' | 'Winter' | 'Spring' | 'Summer', year: number) => {
     // Check if a semester with the same type and year already exists
@@ -242,6 +286,28 @@ export function useSchedule() {
     updateScheduleData(newData);
   };
 
+  const addSelectedCoursesToSemester = (semesterId: string) => {
+    const coursesToAdd = getSelectedCourses().filter(course => 
+      scheduleData.availableCourses.some(c => c.id === course.id)
+    );
+    
+    if (coursesToAdd.length === 0) return;
+
+    const newData = {
+      semesters: scheduleData.semesters.map(semester =>
+        semester.id === semesterId
+          ? { ...semester, courses: [...semester.courses, ...coursesToAdd] }
+          : semester
+      ),
+      availableCourses: scheduleData.availableCourses.filter(c => 
+        !coursesToAdd.some(course => course.id === c.id)
+      )
+    };
+    
+    updateScheduleData(newData);
+    clearSelection();
+  };
+
   const removeCourseFromSemester = (semesterId: string, courseId: string) => {
     const semester = scheduleData.semesters.find(s => s.id === semesterId);
     const course = semester?.courses.find(c => c.id === courseId);
@@ -257,6 +323,29 @@ export function useSchedule() {
       };
       updateScheduleData(newData);
     }
+  };
+
+  const removeSelectedCoursesFromSemester = (semesterId: string) => {
+    const semester = scheduleData.semesters.find(s => s.id === semesterId);
+    if (!semester) return;
+
+    const selectedInSemester = semester.courses.filter(course => 
+      selectedCourses.has(course.id)
+    );
+    
+    if (selectedInSemester.length === 0) return;
+
+    const newData = {
+      semesters: scheduleData.semesters.map(s =>
+        s.id === semesterId
+          ? { ...s, courses: s.courses.filter(c => !selectedCourses.has(c.id)) }
+          : s
+      ),
+      availableCourses: [...scheduleData.availableCourses, ...selectedInSemester]
+    };
+    
+    updateScheduleData(newData);
+    clearSelection();
   };
 
   const moveCourse = (fromSemesterId: string, toSemesterId: string, courseId: string) => {
@@ -282,6 +371,37 @@ export function useSchedule() {
     }
   };
 
+  const moveSelectedCourses = (fromSemesterId: string, toSemesterId: string) => {
+    if (fromSemesterId === toSemesterId) return;
+
+    const fromSemester = scheduleData.semesters.find(s => s.id === fromSemesterId);
+    const toSemester = scheduleData.semesters.find(s => s.id === toSemesterId);
+    
+    if (!fromSemester || !toSemester) return;
+
+    const coursesToMove = fromSemester.courses.filter(course => 
+      selectedCourses.has(course.id)
+    );
+    
+    if (coursesToMove.length === 0) return;
+
+    const newData = {
+      ...scheduleData,
+      semesters: scheduleData.semesters.map(semester => {
+        if (semester.id === fromSemesterId) {
+          return { ...semester, courses: semester.courses.filter(c => !selectedCourses.has(c.id)) };
+        }
+        if (semester.id === toSemesterId) {
+          return { ...semester, courses: [...semester.courses, ...coursesToMove] };
+        }
+        return semester;
+      })
+    };
+    
+    updateScheduleData(newData);
+    clearSelection();
+  };
+
   const addCourseToLibrary = (course: Course) => {
     const newData = {
       ...scheduleData,
@@ -296,6 +416,15 @@ export function useSchedule() {
       availableCourses: scheduleData.availableCourses.filter(c => c.id !== courseId)
     };
     updateScheduleData(newData);
+  };
+
+  const removeSelectedCoursesFromLibrary = () => {
+    const newData = {
+      ...scheduleData,
+      availableCourses: scheduleData.availableCourses.filter(c => !selectedCourses.has(c.id))
+    };
+    updateScheduleData(newData);
+    clearSelection();
   };
 
   const toggleCourseCompletion = (courseId: string) => {
@@ -406,14 +535,25 @@ export function useSchedule() {
     semesters: scheduleData.semesters,
     availableCourses: scheduleData.availableCourses,
     isLoading,
+    selectedCourses,
+    getSelectedCourses,
+    toggleCourseSelection,
+    selectCourse,
+    deselectCourse,
+    clearSelection,
+    selectAllCourses,
     addSemester,
     removeSemester,
     clearSemesterCourses,
     addCourseToSemester,
+    addSelectedCoursesToSemester,
     removeCourseFromSemester,
+    removeSelectedCoursesFromSemester,
     moveCourse,
+    moveSelectedCourses,
     addCourseToLibrary,
     removeCourseFromLibrary,
+    removeSelectedCoursesFromLibrary,
     toggleCourseCompletion,
     updateCourse,
     searchCourseInSemesters,

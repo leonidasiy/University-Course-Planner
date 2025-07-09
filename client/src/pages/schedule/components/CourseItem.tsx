@@ -9,6 +9,8 @@ import { GripVertical, X } from 'lucide-react';
 interface CourseItemProps {
   course: Course;
   semesterId?: string;
+  isSelected?: boolean;
+  onSelect?: (courseId: string, isSelected: boolean) => void;
   onRemove?: (semesterId: string, courseId: string) => void;
   onRemoveFromLibrary?: (courseId: string) => void;
   onToggleCompletion?: (courseId: string) => void;
@@ -17,6 +19,8 @@ interface CourseItemProps {
 export function CourseItem({ 
   course, 
   semesterId, 
+  isSelected = false,
+  onSelect,
   onRemove, 
   onRemoveFromLibrary, 
   onToggleCompletion 
@@ -26,7 +30,8 @@ export function CourseItem({
       type: 'course',
       courseId: course.id,
       course: course,
-      fromSemester: semesterId || null
+      fromSemester: semesterId || null,
+      isMultiSelect: isSelected
     };
     e.dataTransfer.setData('application/json', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
@@ -43,6 +48,20 @@ export function CourseItem({
   const handleCompletionToggle = () => {
     if (onToggleCompletion) {
       onToggleCompletion(course.id);
+    }
+  };
+
+  const handleSelectionChange = (checked: boolean) => {
+    if (onSelect) {
+      onSelect(course.id, checked);
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Handle keyboard shortcuts for selection
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      handleSelectionChange(!isSelected);
     }
   };
 
@@ -66,13 +85,27 @@ export function CourseItem({
     <Card
       draggable
       onDragStart={handleDragStart}
-      className={`cursor-move hover:shadow-md transition-shadow ${
+      onClick={handleClick}
+      className={`cursor-move hover:shadow-md transition-all ${
         course.isCompleted ? 'bg-green-50 border-green-200' : ''
+      } ${
+        isSelected ? 'ring-2 ring-primary ring-offset-2 bg-primary/5' : ''
       }`}
     >
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
-          <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+          <div className="flex items-center gap-2">
+            <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+            
+            {onSelect && (
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={handleSelectionChange}
+                className="flex-shrink-0 mt-1"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+          </div>
           
           <div className="flex items-start gap-2 flex-1 min-w-0">
             {onToggleCompletion && (
@@ -80,6 +113,7 @@ export function CourseItem({
                 checked={course.isCompleted}
                 onCheckedChange={handleCompletionToggle}
                 className="flex-shrink-0 mt-1"
+                onClick={(e) => e.stopPropagation()}
               />
             )}
             
@@ -103,7 +137,10 @@ export function CourseItem({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleRemoveClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemoveClick();
+            }}
             className="h-6 w-6 p-0 flex-shrink-0"
           >
             <X className="h-3 w-3" />

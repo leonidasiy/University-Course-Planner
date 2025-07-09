@@ -10,14 +10,25 @@ export function SchedulePage() {
     semesters,
     availableCourses,
     isLoading,
+    selectedCourses,
+    getSelectedCourses,
+    toggleCourseSelection,
+    selectCourse,
+    deselectCourse,
+    clearSelection,
+    selectAllCourses,
     addSemester,
     removeSemester,
     clearSemesterCourses,
     addCourseToSemester,
+    addSelectedCoursesToSemester,
     removeCourseFromSemester,
+    removeSelectedCoursesFromSemester,
     moveCourse,
+    moveSelectedCourses,
     addCourseToLibrary,
     removeCourseFromLibrary,
+    removeSelectedCoursesFromLibrary,
     toggleCourseCompletion,
     searchCourseInSemesters,
     totalCredits,
@@ -40,6 +51,35 @@ export function SchedulePage() {
       }
     }
   };
+
+  const handleCourseSelect = (courseId: string, isSelected: boolean) => {
+    if (isSelected) {
+      selectCourse(courseId);
+    } else {
+      deselectCourse(courseId);
+    }
+  };
+
+  // Add keyboard event listener for global shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'a') {
+          e.preventDefault();
+          selectAllCourses([...availableCourses, ...semesters.flatMap(s => s.courses)]);
+        } else if (e.key === 'd') {
+          e.preventDefault();
+          clearSelection();
+        }
+      }
+      if (e.key === 'Escape') {
+        clearSelection();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [availableCourses, semesters, selectAllCourses, clearSelection]);
 
   if (isLoading) {
     return (
@@ -68,11 +108,18 @@ export function SchedulePage() {
           <SemesterList
             semesters={semesters}
             availableCourses={availableCourses}
+            selectedCourses={selectedCourses}
+            onSelect={handleCourseSelect}
+            onSelectAll={selectAllCourses}
+            onClearSelection={clearSelection}
             onRemoveSemester={removeSemester}
             onClearSemesterCourses={clearSemesterCourses}
             onAddCourse={addCourseToSemester}
+            onAddSelectedCourses={addSelectedCoursesToSemester}
             onRemoveCourse={removeCourseFromSemester}
+            onRemoveSelectedCourses={removeSelectedCoursesFromSemester}
             onMoveCourse={moveCourse}
+            onMoveSelectedCourses={moveSelectedCourses}
             onToggleCompletion={toggleCourseCompletion}
           />
         </div>
@@ -85,10 +132,26 @@ export function SchedulePage() {
           
           <CourseLibrary
             courses={availableCourses}
+            selectedCourses={selectedCourses}
+            onSelect={handleCourseSelect}
+            onSelectAll={selectAllCourses}
+            onClearSelection={clearSelection}
             onAddCourse={addCourseToLibrary}
             onRemoveCourse={removeCourseFromLibrary}
+            onRemoveSelected={removeSelectedCoursesFromLibrary}
             onToggleCompletion={toggleCourseCompletion}
           />
+          
+          {selectedCourses.size > 0 && (
+            <div className="text-center text-sm text-muted-foreground">
+              <p>
+                {selectedCourses.size} course{selectedCourses.size !== 1 ? 's' : ''} selected
+              </p>
+              <p className="mt-1">
+                Keyboard shortcuts: Ctrl+A (select all), Ctrl+D (deselect all), Esc (clear selection)
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

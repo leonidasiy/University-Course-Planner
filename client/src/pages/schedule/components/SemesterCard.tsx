@@ -6,16 +6,23 @@ import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { Semester, Course } from '../types/schedule';
-import { Trash2, Calendar, Sun, Flower, Leaf, Plus, Eraser } from 'lucide-react';
+import { Trash2, Calendar, Sun, Flower, Leaf, Plus, Eraser, CheckSquare, Square } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: Semester;
   availableCourses: Course[];
+  selectedCourses: Set<string>;
+  onSelect: (courseId: string, isSelected: boolean) => void;
+  onSelectAll: (courses: Course[]) => void;
+  onClearSelection: () => void;
   onRemove: (semesterId: string) => void;
   onClearCourses: (semesterId: string) => void;
   onAddCourse: (semesterId: string, course: Course) => void;
+  onAddSelectedCourses: (semesterId: string) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
+  onRemoveSelectedCourses: (semesterId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
+  onMoveSelectedCourses: (fromSemesterId: string, toSemesterId: string) => void;
   onToggleCompletion: (courseId: string) => void;
 }
 
@@ -60,11 +67,18 @@ const REQUIRED_SEMESTER_IDS = [
 export function SemesterCard({
   semester,
   availableCourses,
+  selectedCourses,
+  onSelect,
+  onSelectAll,
+  onClearSelection,
   onRemove,
   onClearCourses,
   onAddCourse,
+  onAddSelectedCourses,
   onRemoveCourse,
+  onRemoveSelectedCourses,
   onMoveCourse,
+  onMoveSelectedCourses,
   onToggleCompletion
 }: SemesterCardProps) {
   const [selectedCourseId, setSelectedCourseId] = React.useState<string>('');
@@ -100,6 +114,19 @@ export function SemesterCard({
     .filter(course => course.majorRequirements.includes('CCC'))
     .reduce((sum, course) => sum + course.credits, 0);
 
+  const selectedCoursesInSemester = React.useMemo(() => {
+    return semester.courses.filter(course => selectedCourses.has(course.id));
+  }, [semester.courses, selectedCourses]);
+
+  const selectedAvailableCourses = React.useMemo(() => {
+    return availableCourses.filter(course => selectedCourses.has(course.id));
+  }, [availableCourses, selectedCourses]);
+
+  const allCoursesSelected = React.useMemo(() => {
+    return semester.courses.length > 0 && 
+           semester.courses.every(course => selectedCourses.has(course.id));
+  }, [semester.courses, selectedCourses]);
+
   const courseOptions = availableCourses.map(course => {
     const reqText = course.majorRequirements.length > 0 
       ? ` [${course.majorRequirements.join(', ')}]` 
@@ -121,10 +148,20 @@ export function SemesterCard({
     const data = JSON.parse(dragData);
     
     if (data.type === 'course') {
-      if (data.fromSemester) {
-        onMoveCourse(data.fromSemester, semester.id, data.courseId);
+      if (data.isMultiSelect) {
+        // Handle multi-select drop
+        if (data.fromSemester) {
+          onMoveSelectedCourses(data.fromSemester, semester.id);
+        } else {
+          onAddSelectedCourses(semester.id);
+        }
       } else {
-        onAddCourse(semester.id, data.course);
+        // Handle single course drop
+        if (data.fromSemester) {
+          onMoveCourse(data.fromSemester, semester.id, data.courseId);
+        } else {
+          onAddCourse(semester.id, data.course);
+        }
       }
     }
   };
@@ -153,6 +190,18 @@ export function SemesterCard({
     setSelectedCourseId(value);
   };
 
+  const handleSelectAll = () => {
+    if (allCoursesSelected) {
+      onClearSelection();
+    } else {
+      onSelectAll(semester.courses);
+    }
+  };
+
+  const handleCourseSelect = (courseId: string, isSelected: boolean) => {
+    onSelect(courseId, isSelected);
+  };
+
   return (
     <Card
       className={`transition-colors hover:bg-accent/50 border-l-4 ${getSemesterColor(semester.type)}`}
@@ -164,6 +213,11 @@ export function SemesterCard({
           <CardTitle className="flex items-center gap-2">
             {getSemesterIcon(semester.type)}
             {semester.type} {semester.year}
+            {selectedCoursesInSemester.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {selectedCoursesInSemester.length} selected
+              </Badge>
+            )}
           </CardTitle>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">
@@ -183,6 +237,34 @@ export function SemesterCard({
               <Badge variant="outline" className="text-purple-600 border-purple-600">
                 {cccCompletedCredits}/{cccTotalCredits} CCC
               </Badge>
+            )}
+            
+            {semester.courses.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAll}
+                className="h-8 px-2 text-xs"
+                title={allCoursesSelected ? "Deselect all courses" : "Select all courses"}
+              >
+                {allCoursesSelected ? (
+                  <CheckSquare className="h-3 w-3" />
+                ) : (
+                  <Square className="h-3 w-3" />
+                )}
+              </Button>
+            )}
+            
+            {selectedCoursesInSemester.length > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => onRemoveSelectedCourses(semester.id)}
+                className="h-8 px-2 text-xs"
+                title={`Remove ${selectedCoursesInSemester.length} selected course${selectedCoursesInSemester.length !== 1 ? 's' : ''}`}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
             )}
             
             {semester.courses.length > 0 && (
@@ -260,27 +342,36 @@ export function SemesterCard({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {availableCourses.length > 0 && (
-          <div className="flex gap-2">
-            <Combobox
-              options={courseOptions}
-              value={selectedCourseId}
-              onValueChange={handleComboboxValueChange}
-              placeholder="Select a course to add..."
-              searchPlaceholder="Search courses by code or name..."
-              emptyText="No courses found."
-              className="flex-1"
-            />
+        <div className="flex gap-2">
+          <Combobox
+            options={courseOptions}
+            value={selectedCourseId}
+            onValueChange={handleComboboxValueChange}
+            placeholder="Select a course to add..."
+            searchPlaceholder="Search courses by code or name..."
+            emptyText="No courses found."
+            className="flex-1"
+          />
+          <Button
+            onClick={handleAddCourseFromDropdown}
+            disabled={!selectedCourseId}
+            size="sm"
+            className="shrink-0"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          
+          {selectedAvailableCourses.length > 0 && (
             <Button
-              onClick={handleAddCourseFromDropdown}
-              disabled={!selectedCourseId}
+              onClick={() => onAddSelectedCourses(semester.id)}
               size="sm"
+              variant="outline"
               className="shrink-0"
             >
-              <Plus className="h-4 w-4" />
+              Add Selected ({selectedAvailableCourses.length})
             </Button>
-          </div>
-        )}
+          )}
+        </div>
 
         {semester.courses.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-muted rounded-lg">
@@ -291,11 +382,16 @@ export function SemesterCard({
           </div>
         ) : (
           <div className="space-y-2">
+            <div className="text-xs text-muted-foreground">
+              Tip: Hold Ctrl/Cmd and click to select multiple courses
+            </div>
             {semester.courses.map((course) => (
               <CourseItem
                 key={course.id}
                 course={course}
                 semesterId={semester.id}
+                isSelected={selectedCourses.has(course.id)}
+                onSelect={handleCourseSelect}
                 onRemove={onRemoveCourse}
                 onToggleCompletion={onToggleCompletion}
               />

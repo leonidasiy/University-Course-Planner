@@ -5,22 +5,36 @@ import { Semester, Course } from '../types/schedule';
 interface SemesterListProps {
   semesters: Semester[];
   availableCourses: Course[];
+  selectedCourses: Set<string>;
+  onSelect: (courseId: string, isSelected: boolean) => void;
+  onSelectAll: (courses: Course[]) => void;
+  onClearSelection: () => void;
   onRemoveSemester: (semesterId: string) => void;
   onClearSemesterCourses: (semesterId: string) => void;
   onAddCourse: (semesterId: string, course: Course) => void;
+  onAddSelectedCourses: (semesterId: string) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
+  onRemoveSelectedCourses: (semesterId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
+  onMoveSelectedCourses: (fromSemesterId: string, toSemesterId: string) => void;
   onToggleCompletion: (courseId: string) => void;
 }
 
 export function SemesterList({
   semesters,
   availableCourses,
+  selectedCourses,
+  onSelect,
+  onSelectAll,
+  onClearSelection,
   onRemoveSemester,
   onClearSemesterCourses,
   onAddCourse,
+  onAddSelectedCourses,
   onRemoveCourse,
+  onRemoveSelectedCourses,
   onMoveCourse,
+  onMoveSelectedCourses,
   onToggleCompletion
 }: SemesterListProps) {
   if (semesters.length === 0) {
@@ -41,11 +55,18 @@ export function SemesterList({
             <SemesterCard
               semester={semester}
               availableCourses={availableCourses}
+              selectedCourses={selectedCourses}
+              onSelect={onSelect}
+              onSelectAll={onSelectAll}
+              onClearSelection={onClearSelection}
               onRemove={onRemoveSemester}
               onClearCourses={onClearSemesterCourses}
               onAddCourse={onAddCourse}
+              onAddSelectedCourses={onAddSelectedCourses}
               onRemoveCourse={onRemoveCourse}
+              onRemoveSelectedCourses={onRemoveSelectedCourses}
               onMoveCourse={onMoveCourse}
+              onMoveSelectedCourses={onMoveSelectedCourses}
               onToggleCompletion={onToggleCompletion}
             />
           </div>
