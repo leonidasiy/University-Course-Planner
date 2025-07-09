@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CourseItem } from './CourseItem';
 import { CourseFilters } from './CourseFilters';
 import { Course } from '../types/schedule';
-import { Plus, Library, Trash2, CheckSquare, Square } from 'lucide-react';
+import { Plus, Library, Trash2, CheckSquare, Square, Check, X } from 'lucide-react';
 
 interface CourseLibraryProps {
   courses: Course[];
@@ -21,6 +21,7 @@ interface CourseLibraryProps {
   onRemoveCourse: (courseId: string) => void;
   onRemoveSelected: () => void;
   onToggleCompletion: (courseId: string) => void;
+  onToggleSelectedCompletion: (completed: boolean) => void;
 }
 
 // Define the sorting priority for course requirements
@@ -40,7 +41,8 @@ export function CourseLibrary({
   onAddCourse, 
   onRemoveCourse,
   onRemoveSelected,
-  onToggleCompletion 
+  onToggleCompletion,
+  onToggleSelectedCompletion
 }: CourseLibraryProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedRequirements, setSelectedRequirements] = React.useState<string[]>([]);
@@ -125,6 +127,17 @@ export function CourseLibrary({
            filteredAndSortedCourses.every(course => selectedCourses.has(course.id));
   }, [filteredAndSortedCourses, selectedCourses]);
 
+  const selectedCoursesCompletionStatus = React.useMemo(() => {
+    const completedCount = selectedCoursesInLibrary.filter(course => course.isCompleted).length;
+    const totalSelected = selectedCoursesInLibrary.length;
+    
+    return {
+      allCompleted: totalSelected > 0 && completedCount === totalSelected,
+      someCompleted: completedCount > 0 && completedCount < totalSelected,
+      noneCompleted: completedCount === 0
+    };
+  }, [selectedCoursesInLibrary]);
+
   const handleSelectAll = () => {
     if (allCoursesSelected) {
       onClearSelection();
@@ -135,6 +148,14 @@ export function CourseLibrary({
 
   const handleCourseSelect = (courseId: string, isSelected: boolean) => {
     onSelect(courseId, isSelected);
+  };
+
+  const handleMarkSelectedAsComplete = () => {
+    onToggleSelectedCompletion(true);
+  };
+
+  const handleMarkSelectedAsIncomplete = () => {
+    onToggleSelectedCompletion(false);
   };
 
   return (
@@ -161,7 +182,7 @@ export function CourseLibrary({
               )}
             </CardTitle>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {filteredAndSortedCourses.length > 0 && (
                 <Button
                   variant="outline"
@@ -184,15 +205,39 @@ export function CourseLibrary({
               )}
               
               {selectedCoursesInLibrary.length > 0 && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={onRemoveSelected}
-                  className="flex items-center gap-1"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Remove Selected ({selectedCoursesInLibrary.length})
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleMarkSelectedAsComplete}
+                    className="flex items-center gap-1"
+                    disabled={selectedCoursesCompletionStatus.allCompleted}
+                  >
+                    <Check className="h-4 w-4" />
+                    Mark Complete
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleMarkSelectedAsIncomplete}
+                    className="flex items-center gap-1"
+                    disabled={selectedCoursesCompletionStatus.noneCompleted}
+                  >
+                    <X className="h-4 w-4" />
+                    Mark Incomplete
+                  </Button>
+                  
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={onRemoveSelected}
+                    className="flex items-center gap-1"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Remove ({selectedCoursesInLibrary.length})
+                  </Button>
+                </>
               )}
               
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

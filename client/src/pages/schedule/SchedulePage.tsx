@@ -30,6 +30,7 @@ export function SchedulePage() {
     removeCourseFromLibrary,
     removeSelectedCoursesFromLibrary,
     toggleCourseCompletion,
+    toggleSelectedCoursesCompletion,
     searchCourseInSemesters,
     totalCredits,
     completedCredits,
@@ -121,6 +122,7 @@ export function SchedulePage() {
             onMoveCourse={moveCourse}
             onMoveSelectedCourses={moveSelectedCourses}
             onToggleCompletion={toggleCourseCompletion}
+            onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
           />
         </div>
         
@@ -140,6 +142,7 @@ export function SchedulePage() {
             onRemoveCourse={removeCourseFromLibrary}
             onRemoveSelected={removeSelectedCoursesFromLibrary}
             onToggleCompletion={toggleCourseCompletion}
+            onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
           />
           
           {selectedCourses.size > 0 && (

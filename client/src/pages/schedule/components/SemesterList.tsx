@@ -18,6 +18,7 @@ interface SemesterListProps {
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
   onMoveSelectedCourses: (fromSemesterId: string, toSemesterId: string) => void;
   onToggleCompletion: (courseId: string) => void;
+  onToggleSelectedCompletion: (completed: boolean) => void;
 }
 
 export function SemesterList({
@@ -35,7 +36,8 @@ export function SemesterList({
   onRemoveSelectedCourses,
   onMoveCourse,
   onMoveSelectedCourses,
-  onToggleCompletion
+  onToggleCompletion,
+  onToggleSelectedCompletion
 }: SemesterListProps) {
   if (semesters.length === 0) {
     return (
@@ -68,6 +70,7 @@ export function SemesterList({
               onMoveCourse={onMoveCourse}
               onMoveSelectedCourses={onMoveSelectedCourses}
               onToggleCompletion={onToggleCompletion}
+              onToggleSelectedCompletion={onToggleSelectedCompletion}
             />
           </div>
         ))}

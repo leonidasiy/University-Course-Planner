@@ -6,7 +6,7 @@ import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { Semester, Course } from '../types/schedule';
-import { Trash2, Calendar, Sun, Flower, Leaf, Plus, Eraser, CheckSquare, Square } from 'lucide-react';
+import { Trash2, Calendar, Sun, Flower, Leaf, Plus, Eraser, CheckSquare, Square, Check, X } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: Semester;
@@ -24,6 +24,7 @@ interface SemesterCardProps {
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
   onMoveSelectedCourses: (fromSemesterId: string, toSemesterId: string) => void;
   onToggleCompletion: (courseId: string) => void;
+  onToggleSelectedCompletion: (completed: boolean) => void;
 }
 
 const getSemesterIcon = (type: string) => {
@@ -79,7 +80,8 @@ export function SemesterCard({
   onRemoveSelectedCourses,
   onMoveCourse,
   onMoveSelectedCourses,
-  onToggleCompletion
+  onToggleCompletion,
+  onToggleSelectedCompletion
 }: SemesterCardProps) {
   const [selectedCourseId, setSelectedCourseId] = React.useState<string>('');
   const [clearDialogOpen, setClearDialogOpen] = React.useState(false);
@@ -126,6 +128,17 @@ export function SemesterCard({
     return semester.courses.length > 0 && 
            semester.courses.every(course => selectedCourses.has(course.id));
   }, [semester.courses, selectedCourses]);
+
+  const selectedCoursesCompletionStatus = React.useMemo(() => {
+    const completedCount = selectedCoursesInSemester.filter(course => course.isCompleted).length;
+    const totalSelected = selectedCoursesInSemester.length;
+    
+    return {
+      allCompleted: totalSelected > 0 && completedCount === totalSelected,
+      someCompleted: completedCount > 0 && completedCount < totalSelected,
+      noneCompleted: completedCount === 0
+    };
+  }, [selectedCoursesInSemester]);
 
   const courseOptions = availableCourses.map(course => {
     const reqText = course.majorRequirements.length > 0 
@@ -202,6 +215,14 @@ export function SemesterCard({
     onSelect(courseId, isSelected);
   };
 
+  const handleMarkSelectedAsComplete = () => {
+    onToggleSelectedCompletion(true);
+  };
+
+  const handleMarkSelectedAsIncomplete = () => {
+    onToggleSelectedCompletion(false);
+  };
+
   return (
     <Card
       className={`transition-colors hover:bg-accent/50 border-l-4 ${getSemesterColor(semester.type)}`}
@@ -219,7 +240,7 @@ export function SemesterCard({
               </Badge>
             )}
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="secondary">
               {completedCredits}/{totalCredits} credits
             </Badge>
@@ -256,15 +277,39 @@ export function SemesterCard({
             )}
             
             {selectedCoursesInSemester.length > 0 && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => onRemoveSelectedCourses(semester.id)}
-                className="h-8 px-2 text-xs"
-                title={`Remove ${selectedCoursesInSemester.length} selected course${selectedCoursesInSemester.length !== 1 ? 's' : ''}`}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleMarkSelectedAsComplete}
+                  className="h-8 px-2 text-xs"
+                  title="Mark selected courses as complete"
+                  disabled={selectedCoursesCompletionStatus.allCompleted}
+                >
+                  <Check className="h-3 w-3" />
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleMarkSelectedAsIncomplete}
+                  className="h-8 px-2 text-xs"
+                  title="Mark selected courses as incomplete"
+                  disabled={selectedCoursesCompletionStatus.noneCompleted}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+                
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onRemoveSelectedCourses(semester.id)}
+                  className="h-8 px-2 text-xs"
+                  title={`Remove ${selectedCoursesInSemester.length} selected course${selectedCoursesInSemester.length !== 1 ? 's' : ''}`}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </>
             )}
             
             {semester.courses.length > 0 && (
@@ -342,7 +387,7 @@ export function SemesterCard({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Combobox
             options={courseOptions}
             value={selectedCourseId}
@@ -350,7 +395,7 @@ export function SemesterCard({
             placeholder="Select a course to add..."
             searchPlaceholder="Search courses by code or name..."
             emptyText="No courses found."
-            className="flex-1"
+            className="flex-1 min-w-0"
           />
           <Button
             onClick={handleAddCourseFromDropdown}

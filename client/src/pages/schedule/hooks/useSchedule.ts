@@ -446,6 +446,26 @@ export function useSchedule() {
     updateScheduleData(newData);
   };
 
+  const toggleSelectedCoursesCompletion = (completed: boolean) => {
+    const newData = {
+      semesters: scheduleData.semesters.map(semester => ({
+        ...semester,
+        courses: semester.courses.map(course =>
+          selectedCourses.has(course.id)
+            ? { ...course, isCompleted: completed }
+            : course
+        )
+      })),
+      availableCourses: scheduleData.availableCourses.map(course =>
+        selectedCourses.has(course.id)
+          ? { ...course, isCompleted: completed }
+          : course
+      )
+    };
+    updateScheduleData(newData);
+    clearSelection();
+  };
+
   const updateCourse = (courseId: string, updates: Partial<Course>) => {
     const newData = {
       semesters: scheduleData.semesters.map(semester => ({
@@ -555,6 +575,7 @@ export function useSchedule() {
     removeCourseFromLibrary,
     removeSelectedCoursesFromLibrary,
     toggleCourseCompletion,
+    toggleSelectedCoursesCompletion,
     updateCourse,
     searchCourseInSemesters,
     totalCredits,
