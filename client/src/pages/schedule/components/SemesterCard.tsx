@@ -2,11 +2,12 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { Semester, Course } from '../types/schedule';
-import { Trash2, Calendar, Sun, Flower, Leaf, Plus, Eraser, CheckSquare, Square, Check, X } from 'lucide-react';
+import { Trash2, Calendar, Sun, Flower, Leaf, Plus, Eraser, CheckSquare, Square, Check, X, Edit2 } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: Semester;
@@ -25,6 +26,7 @@ interface SemesterCardProps {
   onMoveSelectedCourses: (fromSemesterId: string, toSemesterId: string) => void;
   onToggleCompletion: (courseId: string) => void;
   onToggleSelectedCompletion: (completed: boolean) => void;
+  onUpdateSemesterName?: (semesterId: string, newName: string) => void;
 }
 
 const getSemesterIcon = (type: string) => {
@@ -81,13 +83,22 @@ export function SemesterCard({
   onMoveCourse,
   onMoveSelectedCourses,
   onToggleCompletion,
-  onToggleSelectedCompletion
+  onToggleSelectedCompletion,
+  onUpdateSemesterName
 }: SemesterCardProps) {
   const [selectedCourseId, setSelectedCourseId] = React.useState<string>('');
   const [clearDialogOpen, setClearDialogOpen] = React.useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = React.useState(false);
+  const [isEditingName, setIsEditingName] = React.useState(false);
+  const [editName, setEditName] = React.useState(semester.name);
+  const [searchResults, setSearchResults] = React.useState<Course[]>([]);
+  const [searchTerm, setSearchTerm] = React.useState('');
 
   const isRequiredSemester = REQUIRED_SEMESTER_IDS.includes(semester.id);
+
+  React.useEffect(() => {
+    setEditName(semester.name);
+  }, [semester.name]);
 
   const totalCredits = semester.courses.reduce((sum, course) => sum + course.credits, 0);
   const completedCredits = semester.courses
@@ -139,6 +150,20 @@ export function SemesterCard({
       noneCompleted: completedCount === 0
     };
   }, [selectedCoursesInSemester]);
+
+  // Search functionality
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    if (value.trim()) {
+      const results = availableCourses.filter(course => 
+        course.code.toLowerCase().includes(value.toLowerCase()) ||
+        course.name.toLowerCase().includes(value.toLowerCase())
+      ).slice(0, 5); // Limit to 5 results
+      setSearchResults(results);
+    } else {
+      setSearchResults([]);
+    }
+  };
 
   const courseOptions = availableCourses.map(course => {
     const reqText = course.majorRequirements.length > 0 
@@ -223,6 +248,28 @@ export function SemesterCard({
     onToggleSelectedCompletion(false);
   };
 
+  const handleNameEdit = () => {
+    setIsEditingName(true);
+  };
+
+  const handleNameSave = () => {
+    if (onUpdateSemesterName && editName.trim() !== semester.name) {
+      onUpdateSemesterName(semester.id, editName.trim());
+    }
+    setIsEditingName(false);
+  };
+
+  const handleNameCancel = () => {
+    setEditName(semester.name);
+    setIsEditingName(false);
+  };
+
+  const handleAddCourseFromSearch = (course: Course) => {
+    onAddCourse(semester.id, course);
+    setSearchTerm('');
+    setSearchResults([]);
+  };
+
   return (
     <Card
       className={`transition-colors hover:bg-accent/50 border-l-4 ${getSemesterColor(semester.type)}`}
@@ -233,7 +280,33 @@ export function SemesterCard({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             {getSemesterIcon(semester.type)}
-            {semester.type} {semester.year}
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="h-6 text-base font-semibold"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleNameSave();
+                    if (e.key === 'Escape') handleNameCancel();
+                  }}
+                  autoFocus
+                />
+                <Button size="sm" variant="outline" onClick={handleNameSave}>
+                  <Check className="h-3 w-3" />
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleNameCancel}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span>{semester.name}</span>
+                <Button size="sm" variant="ghost" onClick={handleNameEdit} className="h-6 w-6 p-0">
+                  <Edit2 className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
             {selectedCoursesInSemester.length > 0 && (
               <Badge variant="secondary" className="ml-2">
                 {selectedCoursesInSemester.length} selected
@@ -387,41 +460,64 @@ export function SemesterCard({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className="flex gap-2 flex-wrap">
-          <Combobox
-            options={courseOptions}
-            value={selectedCourseId}
-            onValueChange={handleComboboxValueChange}
-            placeholder="Select a course to add..."
-            searchPlaceholder="Search courses by code or name..."
-            emptyText="No courses found."
-            className="flex-1 min-w-0"
-          />
-          <Button
-            onClick={handleAddCourseFromDropdown}
-            disabled={!selectedCourseId}
-            size="sm"
-            className="shrink-0"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+        <div className="space-y-2">
+          <div className="relative">
+            <Input
+              placeholder="Search and add courses..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full"
+            />
+            {searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-10 bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                {searchResults.map((course) => (
+                  <div key={course.id} className="p-2 border-b last:border-b-0">
+                    <CourseItem
+                      course={course}
+                      onAddToSemester={handleAddCourseFromSearch}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           
-          {selectedAvailableCourses.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            <Combobox
+              options={courseOptions}
+              value={selectedCourseId}
+              onValueChange={handleComboboxValueChange}
+              placeholder="Or select from dropdown..."
+              searchPlaceholder="Search courses by code or name..."
+              emptyText="No courses found."
+              className="flex-1 min-w-0"
+            />
             <Button
-              onClick={() => onAddSelectedCourses(semester.id)}
+              onClick={handleAddCourseFromDropdown}
+              disabled={!selectedCourseId}
               size="sm"
-              variant="outline"
               className="shrink-0"
             >
-              Add Selected ({selectedAvailableCourses.length})
+              <Plus className="h-4 w-4" />
             </Button>
-          )}
+            
+            {selectedAvailableCourses.length > 0 && (
+              <Button
+                onClick={() => onAddSelectedCourses(semester.id)}
+                size="sm"
+                variant="outline"
+                className="shrink-0"
+              >
+                Add Selected ({selectedAvailableCourses.length})
+              </Button>
+            )}
+          </div>
         </div>
 
         {semester.courses.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-muted rounded-lg">
             {availableCourses.length > 0 
-              ? "Add courses using the dropdown above or drag courses here"
+              ? "Add courses using search above or drag courses here"
               : "No courses available to add"
             }
           </div>

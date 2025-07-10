@@ -31,7 +31,10 @@ export function ScheduleHeader({
   const [semesterType, setSemesterType] = React.useState<'Fall' | 'Winter' | 'Spring' | 'Summer'>('Fall');
   const [year, setYear] = React.useState(new Date().getFullYear());
 
-  const progressPercentage = totalCredits > 0 ? (completedCredits / totalCredits) * 100 : 0;
+  const graduationPercentage = totalCredits > 0 ? (completedCredits / Math.max(totalCredits, 120)) * 100 : 0;
+  const dsctPercentage = requirementCredits.dsct.total > 0 ? (requirementCredits.dsct.completed / requirementCredits.dsct.total) * 100 : 0;
+  const coscPercentage = requirementCredits.cosc.total > 0 ? (requirementCredits.cosc.completed / requirementCredits.cosc.total) * 100 : 0;
+  const cccPercentage = requirementCredits.ccc.total > 0 ? (requirementCredits.ccc.completed / requirementCredits.ccc.total) * 100 : 0;
 
   const handleAddSemester = () => {
     onAddSemester(semesterType, year);
@@ -91,32 +94,18 @@ export function ScheduleHeader({
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {completedCredits}/{totalCredits}
-            </div>
-            <div className="text-xs text-muted-foreground mb-2">
-              credits ({Math.round(progressPercentage)}%)
-            </div>
-            <Progress value={progressPercentage} className="h-2" />
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium">DSCT Credits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-blue-600 mb-2">
               {requirementCredits.dsct.completed}/{requirementCredits.dsct.total}
             </div>
+            <Progress value={dsctPercentage} className="h-2 mb-2" />
             <div className="text-xs text-muted-foreground">
-              Data Science & Technology
+              Data Science & Technology ({Math.round(dsctPercentage)}%)
             </div>
           </CardContent>
         </Card>
@@ -126,11 +115,12 @@ export function ScheduleHeader({
             <CardTitle className="text-sm font-medium">COSC Credits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-green-600 mb-2">
               {requirementCredits.cosc.completed}/{requirementCredits.cosc.total}
             </div>
+            <Progress value={coscPercentage} className="h-2 mb-2" />
             <div className="text-xs text-muted-foreground">
-              Computer Science
+              Computer Science ({Math.round(coscPercentage)}%)
             </div>
           </CardContent>
         </Card>
@@ -140,25 +130,27 @@ export function ScheduleHeader({
             <CardTitle className="text-sm font-medium">CCC Credits</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
+            <div className="text-2xl font-bold text-purple-600 mb-2">
               {requirementCredits.ccc.completed}/{requirementCredits.ccc.total}
             </div>
+            <Progress value={cccPercentage} className="h-2 mb-2" />
             <div className="text-xs text-muted-foreground">
-              Common Core Courses
+              Common Core Courses ({Math.round(cccPercentage)}%)
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
+            <CardTitle className="text-sm font-medium">Graduation Requirement</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold mb-2">
               {completedCredits}/120
             </div>
+            <Progress value={graduationPercentage} className="h-2 mb-2" />
             <div className="text-xs text-muted-foreground">
-              toward degree
+              toward degree ({Math.round(graduationPercentage)}%)
             </div>
           </CardContent>
         </Card>

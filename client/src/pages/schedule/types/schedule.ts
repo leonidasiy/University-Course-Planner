@@ -5,6 +5,7 @@ export interface Course {
   credits: number;
   majorRequirements: ('DSCT' | 'COSC' | 'CCC')[];
   isCompleted: boolean;
+  category: 'Prerequisites' | 'Major Requirements' | 'Electives';
 }
 
 export interface Semester {

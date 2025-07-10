@@ -7,6 +7,8 @@ import { Filter } from 'lucide-react';
 interface CourseFiltersProps {
   selectedRequirements: string[];
   onRequirementsChange: (requirements: string[]) => void;
+  selectedCategories: string[];
+  onCategoriesChange: (categories: string[]) => void;
   showCompleted: boolean;
   onShowCompletedChange: (show: boolean) => void;
   showIncomplete: boolean;
@@ -16,6 +18,8 @@ interface CourseFiltersProps {
 export function CourseFilters({
   selectedRequirements,
   onRequirementsChange,
+  selectedCategories,
+  onCategoriesChange,
   showCompleted,
   onShowCompletedChange,
   showIncomplete,
@@ -28,11 +32,25 @@ export function CourseFilters({
     { id: 'OTHER', name: 'Other', color: 'text-gray-600 border-gray-600' }
   ];
 
+  const categories = [
+    { id: 'Prerequisites', name: 'Prerequisites', color: 'text-orange-600 border-orange-600' },
+    { id: 'Major Requirements', name: 'Major Requirements', color: 'text-red-600 border-red-600' },
+    { id: 'Electives', name: 'Electives', color: 'text-indigo-600 border-indigo-600' }
+  ];
+
   const handleRequirementToggle = (requirementId: string) => {
     if (selectedRequirements.includes(requirementId)) {
       onRequirementsChange(selectedRequirements.filter(id => id !== requirementId));
     } else {
       onRequirementsChange([...selectedRequirements, requirementId]);
+    }
+  };
+
+  const handleCategoryToggle = (categoryId: string) => {
+    if (selectedCategories.includes(categoryId)) {
+      onCategoriesChange(selectedCategories.filter(id => id !== categoryId));
+    } else {
+      onCategoriesChange([...selectedCategories, categoryId]);
     }
   };
 
@@ -58,6 +76,26 @@ export function CourseFilters({
                 <label htmlFor={req.id} className="text-sm">
                   <Badge variant="outline" className={req.color}>
                     {req.name}
+                  </Badge>
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-medium mb-2">Categories</h4>
+          <div className="space-y-2">
+            {categories.map((category) => (
+              <div key={category.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={category.id}
+                  checked={selectedCategories.includes(category.id)}
+                  onCheckedChange={() => handleCategoryToggle(category.id)}
+                />
+                <label htmlFor={category.id} className="text-sm">
+                  <Badge variant="outline" className={category.color}>
+                    {category.name}
                   </Badge>
                 </label>
               </div>

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { CourseFilters } from './CourseFilters';
@@ -46,6 +47,7 @@ export function CourseLibrary({
 }: CourseLibraryProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedRequirements, setSelectedRequirements] = React.useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
   const [showCompleted, setShowCompleted] = React.useState(true);
   const [showIncomplete, setShowIncomplete] = React.useState(true);
   const [newCourse, setNewCourse] = React.useState({
@@ -53,7 +55,8 @@ export function CourseLibrary({
     name: '',
     credits: 3,
     majorRequirements: [] as ('DSCT' | 'COSC' | 'CCC')[],
-    isCompleted: false
+    isCompleted: false,
+    category: 'Major Requirements' as 'Prerequisites' | 'Major Requirements' | 'Electives'
   });
 
   const handleAddCourse = () => {
@@ -64,10 +67,18 @@ export function CourseLibrary({
         name: newCourse.name,
         credits: newCourse.credits,
         majorRequirements: newCourse.majorRequirements,
-        isCompleted: newCourse.isCompleted
+        isCompleted: newCourse.isCompleted,
+        category: newCourse.category
       };
       onAddCourse(course);
-      setNewCourse({ code: '', name: '', credits: 3, majorRequirements: [], isCompleted: false });
+      setNewCourse({ 
+        code: '', 
+        name: '', 
+        credits: 3, 
+        majorRequirements: [], 
+        isCompleted: false,
+        category: 'Major Requirements'
+      });
       setIsDialogOpen(false);
     }
   };
@@ -91,6 +102,11 @@ export function CourseLibrary({
       // Filter by completion status
       if (!showCompleted && course.isCompleted) return false;
       if (!showIncomplete && !course.isCompleted) return false;
+
+      // Filter by categories
+      if (selectedCategories.length > 0 && !selectedCategories.includes(course.category)) {
+        return false;
+      }
 
       // Filter by requirements
       if (selectedRequirements.length === 0) return true;
@@ -116,7 +132,7 @@ export function CourseLibrary({
       // If same priority, sort alphabetically by course code
       return a.code.localeCompare(b.code);
     });
-  }, [courses, selectedRequirements, showCompleted, showIncomplete]);
+  }, [courses, selectedRequirements, selectedCategories, showCompleted, showIncomplete]);
 
   const selectedCoursesInLibrary = React.useMemo(() => {
     return filteredAndSortedCourses.filter(course => selectedCourses.has(course.id));
@@ -163,6 +179,8 @@ export function CourseLibrary({
       <CourseFilters
         selectedRequirements={selectedRequirements}
         onRequirementsChange={setSelectedRequirements}
+        selectedCategories={selectedCategories}
+        onCategoriesChange={setSelectedCategories}
         showCompleted={showCompleted}
         onShowCompletedChange={setShowCompleted}
         showIncomplete={showIncomplete}
@@ -280,6 +298,24 @@ export function CourseLibrary({
                         value={newCourse.credits}
                         onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 3 })}
                       />
+                    </div>
+                    <div>
+                      <Label>Category</Label>
+                      <Select 
+                        value={newCourse.category} 
+                        onValueChange={(value: 'Prerequisites' | 'Major Requirements' | 'Electives') => 
+                          setNewCourse({ ...newCourse, category: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Prerequisites">Prerequisites</SelectItem>
+                          <SelectItem value="Major Requirements">Major Requirements</SelectItem>
+                          <SelectItem value="Electives">Electives</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label>Major Requirements (select multiple)</Label>

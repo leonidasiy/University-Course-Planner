@@ -14,6 +14,7 @@ interface CourseItemProps {
   onRemove?: (semesterId: string, courseId: string) => void;
   onRemoveFromLibrary?: (courseId: string) => void;
   onToggleCompletion?: (courseId: string) => void;
+  onAddToSemester?: (course: Course) => void;
 }
 
 export function CourseItem({ 
@@ -23,7 +24,8 @@ export function CourseItem({
   onSelect,
   onRemove, 
   onRemoveFromLibrary, 
-  onToggleCompletion 
+  onToggleCompletion,
+  onAddToSemester
 }: CourseItemProps) {
   const handleDragStart = (e: React.DragEvent) => {
     const dragData = {
@@ -54,6 +56,12 @@ export function CourseItem({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
+    // Handle instant add to semester if this is a search result
+    if (onAddToSemester && !semesterId) {
+      onAddToSemester(course);
+      return;
+    }
+    
     // Only handle selection if onSelect is provided
     if (onSelect) {
       onSelect(course.id, !isSelected);
@@ -76,6 +84,20 @@ export function CourseItem({
     ));
   };
 
+  const getCategoryBadge = () => {
+    const colors = {
+      Prerequisites: 'text-orange-600 border-orange-600 bg-orange-50',
+      'Major Requirements': 'text-red-600 border-red-600 bg-red-50',
+      Electives: 'text-indigo-600 border-indigo-600 bg-indigo-50'
+    };
+
+    return (
+      <Badge variant="outline" className={colors[course.category]}>
+        {course.category}
+      </Badge>
+    );
+  };
+
   return (
     <Card
       draggable
@@ -86,7 +108,7 @@ export function CourseItem({
       } ${
         isSelected ? 'ring-2 ring-primary ring-offset-2 bg-primary/10 shadow-md' : ''
       } ${
-        onSelect ? 'hover:bg-accent/50' : 'cursor-move'
+        onSelect || onAddToSemester ? 'hover:bg-accent/50' : 'cursor-move'
       }`}
     >
       <CardContent className="p-3">
@@ -114,6 +136,7 @@ export function CourseItem({
               </div>
               
               <div className="flex flex-wrap items-center gap-1 mt-2">
+                {getCategoryBadge()}
                 {getMajorRequirementBadges()}
                 <Badge variant="outline" className="text-xs">
                   {course.credits} credits
