@@ -18,6 +18,7 @@ export function SchedulePage() {
     clearSelection,
     selectAllCourses,
     addSemester,
+    updateSemesterName,
     removeSemester,
     clearSemesterCourses,
     addCourseToSemester,
@@ -123,6 +124,7 @@ export function SchedulePage() {
             onMoveSelectedCourses={moveSelectedCourses}
             onToggleCompletion={toggleCourseCompletion}
             onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
+            onUpdateSemesterName={updateSemesterName}
           />
         </div>
         

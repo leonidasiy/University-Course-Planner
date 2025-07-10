@@ -48,11 +48,14 @@ export function CourseItem({
     }
   };
 
-  const handleCompletionToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCompletionToggle = (checked: boolean | string) => {
     if (onToggleCompletion) {
       onToggleCompletion(course.id);
     }
+  };
+
+  const handleCompletionClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -119,12 +122,13 @@ export function CourseItem({
           
           <div className="flex items-start gap-2 flex-1 min-w-0">
             {onToggleCompletion && (
-              <Checkbox
-                checked={course.isCompleted}
-                onCheckedChange={handleCompletionToggle}
-                className="flex-shrink-0 mt-1"
-                onClick={handleCompletionToggle}
-              />
+              <div onClick={handleCompletionClick}>
+                <Checkbox
+                  checked={course.isCompleted}
+                  onCheckedChange={handleCompletionToggle}
+                  className="flex-shrink-0 mt-1"
+                />
+              </div>
             )}
             
             <div className="flex-1 min-w-0">
