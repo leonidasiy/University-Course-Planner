@@ -85,7 +85,7 @@ const sortSemesters = (semesters: Semester[]): Semester[] => {
     }
 
     // Within the same academic year: Fall -> Spring
-    const order = { 'Fall': 1, 'Spring': 2 };
+    const order = { 'Fall': 1, 'Spring': 2, 'Winter': 3, 'Summer': 4 };
     return order[a.type] - order[b.type];
   });
 };
@@ -421,4 +421,159 @@ export function useSchedule() {
     const newData = {
       ...scheduleData,
       semesters: scheduleData.semesters.map(semester => {
-        
+        if (semester.id === fromSemesterId) {
+          return { ...semester, courses: semester.courses.filter(c => !selectedCourses.has(c.id)) };
+        }
+        if (semester.id === toSemesterId) {
+          return { ...semester, courses: [...semester.courses, ...coursesToMove] };
+        }
+        return semester;
+      })
+    };
+    
+    updateScheduleData(newData);
+    clearSelection();
+  };
+
+  const addCourseToLibrary = (course: Course) => {
+    const newData = {
+      ...scheduleData,
+      availableCourses: [...scheduleData.availableCourses, course]
+    };
+    updateScheduleData(newData);
+  };
+
+  const removeCourseFromLibrary = (courseId: string) => {
+    const newData = {
+      ...scheduleData,
+      availableCourses: scheduleData.availableCourses.filter(c => c.id !== courseId)
+    };
+    updateScheduleData(newData);
+  };
+
+  const removeSelectedCoursesFromLibrary = () => {
+    const newData = {
+      ...scheduleData,
+      availableCourses: scheduleData.availableCourses.filter(c => !selectedCourses.has(c.id))
+    };
+    updateScheduleData(newData);
+    clearSelection();
+  };
+
+  const toggleCourseCompletion = (courseId: string) => {
+    const newData = {
+      semesters: scheduleData.semesters.map(semester => ({
+        ...semester,
+        courses: semester.courses.map(course =>
+          course.id === courseId ? { ...course, isCompleted: !course.isCompleted } : course
+        )
+      })),
+      availableCourses: scheduleData.availableCourses.map(course =>
+        course.id === courseId ? { ...course, isCompleted: !course.isCompleted } : course
+      )
+    };
+    updateScheduleData(newData);
+  };
+
+  const toggleSelectedCoursesCompletion = (completed: boolean) => {
+    const newData = {
+      semesters: scheduleData.semesters.map(semester => ({
+        ...semester,
+        courses: semester.courses.map(course =>
+          selectedCourses.has(course.id) ? { ...course, isCompleted: completed } : course
+        )
+      })),
+      availableCourses: scheduleData.availableCourses.map(course =>
+        selectedCourses.has(course.id) ? { ...course, isCompleted: completed } : course
+      )
+    };
+    updateScheduleData(newData);
+  };
+
+  const searchCourseInSemesters = (searchTerm: string) => {
+    const results: Array<{semester: Semester, course: Course}> = [];
+    
+    scheduleData.semesters.forEach(semester => {
+      semester.courses.forEach(course => {
+        if (course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            course.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+          results.push({ semester, course });
+        }
+      });
+    });
+    
+    return results;
+  };
+
+  // Calculate totals
+  const allCourses = React.useMemo(() => {
+    const courses: Course[] = [...scheduleData.availableCourses];
+    scheduleData.semesters.forEach(semester => {
+      courses.push(...semester.courses);
+    });
+    return courses;
+  }, [scheduleData]);
+
+  const totalCredits = React.useMemo(() => {
+    return allCourses.reduce((sum, course) => sum + course.credits, 0);
+  }, [allCourses]);
+
+  const completedCredits = React.useMemo(() => {
+    return allCourses
+      .filter(course => course.isCompleted)
+      .reduce((sum, course) => sum + course.credits, 0);
+  }, [allCourses]);
+
+  const requirementCredits = React.useMemo(() => {
+    const dsctCourses = allCourses.filter(course => course.majorRequirements.includes('DSCT'));
+    const coscCourses = allCourses.filter(course => course.majorRequirements.includes('COSC'));
+    const cccCourses = allCourses.filter(course => course.majorRequirements.includes('CCC'));
+
+    return {
+      dsct: {
+        completed: dsctCourses.filter(course => course.isCompleted).reduce((sum, course) => sum + course.credits, 0),
+        total: dsctCourses.reduce((sum, course) => sum + course.credits, 0)
+      },
+      cosc: {
+        completed: coscCourses.filter(course => course.isCompleted).reduce((sum, course) => sum + course.credits, 0),
+        total: coscCourses.reduce((sum, course) => sum + course.credits, 0)
+      },
+      ccc: {
+        completed: cccCourses.filter(course => course.isCompleted).reduce((sum, course) => sum + course.credits, 0),
+        total: cccCourses.reduce((sum, course) => sum + course.credits, 0)
+      }
+    };
+  }, [allCourses]);
+
+  return {
+    semesters: scheduleData.semesters,
+    availableCourses: scheduleData.availableCourses,
+    isLoading,
+    selectedCourses,
+    getSelectedCourses,
+    toggleCourseSelection,
+    selectCourse,
+    deselectCourse,
+    clearSelection,
+    selectAllCourses,
+    addSemester,
+    updateSemesterName,
+    removeSemester,
+    clearSemesterCourses,
+    addCourseToSemester,
+    addSelectedCoursesToSemester,
+    removeCourseFromSemester,
+    removeSelectedCoursesFromSemester,
+    moveCourse,
+    moveSelectedCourses,
+    addCourseToLibrary,
+    removeCourseFromLibrary,
+    removeSelectedCoursesFromLibrary,
+    toggleCourseCompletion,
+    toggleSelectedCoursesCompletion,
+    searchCourseInSemesters,
+    totalCredits,
+    completedCredits,
+    requirementCredits
+  };
+}

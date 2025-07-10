@@ -11,6 +11,7 @@ export interface CoursesTable {
   credits: number;
   major_requirements: string; // JSON string array
   is_completed: number; // SQLite boolean (0 or 1)
+  category: string; // Prerequisites, Major Requirements, Electives
   created_at: string;
   updated_at: string;
 }

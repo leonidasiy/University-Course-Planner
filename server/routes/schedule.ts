@@ -30,7 +30,8 @@ router.get('/data', async (req: express.Request, res: express.Response) => {
       name: course.name,
       credits: course.credits,
       majorRequirements: JSON.parse(course.major_requirements),
-      isCompleted: Boolean(course.is_completed)
+      isCompleted: Boolean(course.is_completed),
+      category: course.category || 'Major Requirements'
     }));
     
     const semesters = semestersFromDb.map(semester => {
@@ -103,6 +104,7 @@ router.post('/data', async (req: express.Request, res: express.Response) => {
             credits: course.credits,
             major_requirements: JSON.stringify(course.majorRequirements),
             is_completed: course.isCompleted ? 1 : 0,
+            category: course.category || 'Major Requirements',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
