@@ -41,4 +41,127 @@ export function SchedulePage() {
 
   const handleNavigateToSemester = (semesterId: string) => {
     const semesterElement = document.querySelector(`[data-semester-id="${semesterId}"]`);
-    if (sem
+    if (semesterElement) {
+      semesterElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Add a brief highlight effect
+      const card = semesterElement.querySelector('.border-l-4');
+      if (card) {
+        card.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+        setTimeout(() => {
+          card.classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+        }, 2000);
+      }
+    }
+  };
+
+  const handleCourseSelect = (courseId: string, isSelected: boolean) => {
+    if (isSelected) {
+      selectCourse(courseId);
+    } else {
+      deselectCourse(courseId);
+    }
+  };
+
+  // Add keyboard event listener for global shortcuts
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'a') {
+          e.preventDefault();
+          selectAllCourses([...availableCourses, ...semesters.flatMap(s => s.courses)]);
+        } else if (e.key === 'd') {
+          e.preventDefault();
+          clearSelection();
+        }
+      }
+      if (e.key === 'Escape') {
+        clearSelection();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [availableCourses, semesters, selectAllCourses, clearSelection]);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading your schedule...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <ScheduleHeader
+        totalCredits={totalCredits}
+        completedCredits={completedCredits}
+        requirementCredits={requirementCredits}
+        onAddSemester={addSemester}
+      />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+        <div className="lg:col-span-2">
+          <SemesterList
+            semesters={semesters}
+            availableCourses={availableCourses}
+            selectedCourses={selectedCourses}
+            onSelect={handleCourseSelect}
+            onSelectAll={selectAllCourses}
+            onClearSelection={clearSelection}
+            onRemoveSemester={removeSemester}
+            onClearSemesterCourses={clearSemesterCourses}
+            onAddCourse={addCourseToSemester}
+            onAddSelectedCourses={addSelectedCoursesToSemester}
+            onRemoveCourse={removeCourseFromSemester}
+            onRemoveSelectedCourses={removeSelectedCoursesFromSemester}
+            onMoveCourse={moveCourse}
+            onMoveSelectedCourses={moveSelectedCourses}
+            onToggleCompletion={toggleCourseCompletion}
+            onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
+            onUpdateSemesterName={updateSemesterName}
+            onUpdateCourse={updateCourse}
+          />
+        </div>
+        
+        <div className="lg:col-span-1 space-y-6">
+          <CourseSearch 
+            onSearch={searchCourseInSemesters}
+            onNavigateToSemester={handleNavigateToSemester}
+          />
+          
+          <CourseLibrary
+            courses={availableCourses}
+            selectedCourses={selectedCourses}
+            onSelect={handleCourseSelect}
+            onSelectAll={selectAllCourses}
+            onClearSelection={clearSelection}
+            onAddCourse={addCourseToLibrary}
+            onRemoveCourse={removeCourseFromLibrary}
+            onRemoveSelected={removeSelectedCoursesFromLibrary}
+            onToggleCompletion={toggleCourseCompletion}
+            onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
+            onUpdateCourse={updateCourse}
+          />
+          
+          {selectedCourses.size > 0 && (
+            <div className="text-center text-sm text-muted-foreground">
+              <p>
+                {selectedCourses.size} course{selectedCourses.size !== 1 ? 's' : ''} selected
+              </p>
+              <p className="mt-1">
+                Keyboard shortcuts: Ctrl+A (select all), Ctrl+D (deselect all), Esc (clear selection)
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
