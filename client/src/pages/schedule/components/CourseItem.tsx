@@ -3,8 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Course } from '../types/schedule';
-import { GripVertical, X } from 'lucide-react';
+import { GripVertical, X, Edit, Check } from 'lucide-react';
 
 interface CourseItemProps {
   course: Course;
@@ -15,6 +17,7 @@ interface CourseItemProps {
   onRemoveFromLibrary?: (courseId: string) => void;
   onToggleCompletion?: (courseId: string) => void;
   onAddToSemester?: (course: Course) => void;
+  onUpdateCourse?: (courseId: string, updates: Partial<Course>) => void;
 }
 
 export function CourseItem({ 
@@ -25,8 +28,16 @@ export function CourseItem({
   onRemove, 
   onRemoveFromLibrary, 
   onToggleCompletion,
-  onAddToSemester
+  onAddToSemester,
+  onUpdateCourse
 }: CourseItemProps) {
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [editingCourse, setEditingCourse] = React.useState<Course>(course);
+
+  React.useEffect(() => {
+    setEditingCourse(course);
+  }, [course]);
+
   const handleDragStart = (e: React.DragEvent) => {
     const dragData = {
       type: 'course',
@@ -58,6 +69,11 @@ export function CourseItem({
     e.stopPropagation();
   };
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditDialogOpen(true);
+  };
+
   const handleCardClick = (e: React.MouseEvent) => {
     // Handle instant add to semester if this is a search result
     if (onAddToSemester && !semesterId) {
@@ -68,6 +84,35 @@ export function CourseItem({
     // Only handle selection if onSelect is provided
     if (onSelect) {
       onSelect(course.id, !isSelected);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (onUpdateCourse) {
+      onUpdateCourse(course.id, {
+        category: editingCourse.category,
+        majorRequirements: editingCourse.majorRequirements
+      });
+    }
+    setIsEditDialogOpen(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCourse(course);
+    setIsEditDialogOpen(false);
+  };
+
+  const handleRequirementToggle = (requirement: 'DSCT' | 'COSC' | 'CCC') => {
+    if (editingCourse.majorRequirements.includes(requirement)) {
+      setEditingCourse({
+        ...editingCourse,
+        majorRequirements: editingCourse.majorRequirements.filter(req => req !== requirement)
+      });
+    } else {
+      setEditingCourse({
+        ...editingCourse,
+        majorRequirements: [...editingCourse.majorRequirements, requirement]
+      });
     }
   };
 
@@ -102,68 +147,150 @@ export function CourseItem({
   };
 
   return (
-    <Card
-      draggable
-      onDragStart={handleDragStart}
-      onClick={handleCardClick}
-      className={`cursor-pointer hover:shadow-md transition-all ${
-        course.isCompleted ? 'bg-green-50 border-green-200' : ''
-      } ${
-        isSelected ? 'ring-2 ring-primary ring-offset-2 bg-primary/10 shadow-md' : ''
-      } ${
-        onSelect || onAddToSemester ? 'hover:bg-accent/50' : 'cursor-move'
-      }`}
-    >
-      <CardContent className="p-3">
-        <div className="flex items-start gap-3">
-          <div className="flex items-center gap-2">
-            <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
-          </div>
-          
-          <div className="flex items-start gap-2 flex-1 min-w-0">
-            {onToggleCompletion && (
-              <div onClick={handleCompletionClick}>
-                <Checkbox
-                  checked={course.isCompleted}
-                  onCheckedChange={handleCompletionToggle}
-                  className="flex-shrink-0 mt-1"
-                />
-              </div>
-            )}
+    <>
+      <Card
+        draggable
+        onDragStart={handleDragStart}
+        onClick={handleCardClick}
+        className={`cursor-pointer hover:shadow-md transition-all ${
+          course.isCompleted ? 'bg-green-50 border-green-200' : ''
+        } ${
+          isSelected ? 'ring-2 ring-primary ring-offset-2 bg-primary/10 shadow-md' : ''
+        } ${
+          onSelect || onAddToSemester ? 'hover:bg-accent/50' : 'cursor-move'
+        }`}
+      >
+        <CardContent className="p-3">
+          <div className="flex items-start gap-3">
+            <div className="flex items-center gap-2">
+              <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+            </div>
             
-            <div className="flex-1 min-w-0">
-              <div className={`font-medium text-sm break-words ${course.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
-                {course.code}
-              </div>
-              <div className={`text-xs break-words ${course.isCompleted ? 'line-through text-muted-foreground' : 'text-muted-foreground'}`}>
-                {course.name}
-              </div>
+            <div className="flex items-start gap-2 flex-1 min-w-0">
+              {onToggleCompletion && (
+                <div onClick={handleCompletionClick}>
+                  <Checkbox
+                    checked={course.isCompleted}
+                    onCheckedChange={handleCompletionToggle}
+                    className="flex-shrink-0 mt-1"
+                  />
+                </div>
+              )}
               
-              <div className="flex flex-wrap items-center gap-1 mt-2">
-                {getCategoryBadge()}
-                {getMajorRequirementBadges()}
-                <Badge variant="outline" className="text-xs">
-                  {course.credits} credits
-                </Badge>
-                {isSelected && (
-                  <Badge variant="default" className="text-xs bg-primary text-primary-foreground">
-                    Selected
+              <div className="flex-1 min-w-0">
+                <div className={`font-medium text-sm break-words ${course.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                  {course.code}
+                </div>
+                <div className={`text-xs break-words ${course.isCompleted ? 'line-through text-muted-foreground' : 'text-muted-foreground'}`}>
+                  {course.name}
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-1 mt-2">
+                  {getCategoryBadge()}
+                  {getMajorRequirementBadges()}
+                  <Badge variant="outline" className="text-xs">
+                    {course.credits} credits
                   </Badge>
-                )}
+                  {isSelected && (
+                    <Badge variant="default" className="text-xs bg-primary text-primary-foreground">
+                      Selected
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
+            
+            <div className="flex items-center gap-1">
+              {onUpdateCourse && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleEditClick}
+                  className="h-6 w-6 p-0 flex-shrink-0"
+                  title="Edit course details"
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              )}
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRemoveClick}
+                className="h-6 w-6 p-0 flex-shrink-0"
+                title="Remove course"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleRemoveClick}
-            className="h-6 w-6 p-0 flex-shrink-0"
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {onUpdateCourse && (
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Course Details</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <div className="font-medium text-sm mb-1">{course.code}</div>
+                <div className="text-sm text-muted-foreground mb-3">{course.name}</div>
+                <div className="text-xs text-muted-foreground">{course.credits} credits</div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Category</label>
+                <Select 
+                  value={editingCourse.category} 
+                  onValueChange={(value: 'Prerequisites' | 'Major Requirements' | 'Electives') => 
+                    setEditingCourse({ ...editingCourse, category: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Prerequisites">Prerequisites</SelectItem>
+                    <SelectItem value="Major Requirements">Major Requirements</SelectItem>
+                    <SelectItem value="Electives">Electives</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Major Requirements</label>
+                <div className="space-y-2">
+                  {['DSCT', 'COSC', 'CCC'].map((req) => (
+                    <div key={req} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`edit-${req}`}
+                        checked={editingCourse.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')}
+                        onCheckedChange={() => handleRequirementToggle(req as 'DSCT' | 'COSC' | 'CCC')}
+                      />
+                      <label htmlFor={`edit-${req}`} className="text-sm">
+                        {req} ({req === 'DSCT' ? 'Data Science and Technology' : 
+                               req === 'COSC' ? 'Computer Science' : 'Common Core Courses'})
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2 justify-end pt-4">
+                <Button variant="outline" onClick={handleCancelEdit}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveEdit} className="flex items-center gap-1">
+                  <Check className="h-3 w-3" />
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }

@@ -27,6 +27,7 @@ interface SemesterCardProps {
   onToggleCompletion: (courseId: string) => void;
   onToggleSelectedCompletion: (completed: boolean) => void;
   onUpdateSemesterName?: (semesterId: string, newName: string) => void;
+  onUpdateCourse?: (courseId: string, updates: Partial<Course>) => void;
 }
 
 const getSemesterIcon = (type: string) => {
@@ -84,7 +85,8 @@ export function SemesterCard({
   onMoveSelectedCourses,
   onToggleCompletion,
   onToggleSelectedCompletion,
-  onUpdateSemesterName
+  onUpdateSemesterName,
+  onUpdateCourse
 }: SemesterCardProps) {
   const [selectedCourseId, setSelectedCourseId] = React.useState<string>('');
   const [clearDialogOpen, setClearDialogOpen] = React.useState(false);
@@ -524,7 +526,7 @@ export function SemesterCard({
         ) : (
           <div className="space-y-2">
             <div className="text-xs text-muted-foreground">
-              Tip: Click on course cards to select/deselect them
+              Tip: Click on course cards to select/deselect them, or click the edit icon to modify course details
             </div>
             {semester.courses.map((course) => (
               <CourseItem
@@ -535,6 +537,7 @@ export function SemesterCard({
                 onSelect={handleCourseSelect}
                 onRemove={onRemoveCourse}
                 onToggleCompletion={onToggleCompletion}
+                onUpdateCourse={onUpdateCourse}
               />
             ))}
           </div>

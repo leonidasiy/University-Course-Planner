@@ -240,6 +240,21 @@ export function useSchedule() {
     return allCourses.filter(course => selectedCourses.has(course.id));
   }, [scheduleData, selectedCourses]);
 
+  const updateCourse = React.useCallback((courseId: string, updates: Partial<Course>) => {
+    const newData = {
+      semesters: scheduleData.semesters.map(semester => ({
+        ...semester,
+        courses: semester.courses.map(course =>
+          course.id === courseId ? { ...course, ...updates } : course
+        )
+      })),
+      availableCourses: scheduleData.availableCourses.map(course =>
+        course.id === courseId ? { ...course, ...updates } : course
+      )
+    };
+    updateScheduleData(newData);
+  }, [scheduleData, updateScheduleData]);
+
   const addSemester = (type: 'Fall' | 'Winter' | 'Spring' | 'Summer', year: number) => {
     // Check if a semester with the same type and year already exists
     const existingSemester = scheduleData.semesters.find(s => s.type === type && s.year === year);
@@ -571,6 +586,7 @@ export function useSchedule() {
     removeSelectedCoursesFromLibrary,
     toggleCourseCompletion,
     toggleSelectedCoursesCompletion,
+    updateCourse,
     searchCourseInSemesters,
     totalCredits,
     completedCredits,

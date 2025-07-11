@@ -23,6 +23,7 @@ interface CourseLibraryProps {
   onRemoveSelected: () => void;
   onToggleCompletion: (courseId: string) => void;
   onToggleSelectedCompletion: (completed: boolean) => void;
+  onUpdateCourse?: (courseId: string, updates: Partial<Course>) => void;
 }
 
 // Define the sorting priority for course requirements
@@ -43,7 +44,8 @@ export function CourseLibrary({
   onRemoveCourse,
   onRemoveSelected,
   onToggleCompletion,
-  onToggleSelectedCompletion
+  onToggleSelectedCompletion,
+  onUpdateCourse
 }: CourseLibraryProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedRequirements, setSelectedRequirements] = React.useState<string[]>([]);
@@ -401,7 +403,7 @@ export function CourseLibrary({
             ) : (
               <div className="space-y-2">
                 <div className="text-xs text-muted-foreground mb-2">
-                  Tip: Click on course cards to select/deselect them
+                  Tip: Click on course cards to select/deselect them, or click the edit icon to modify course details
                 </div>
                 {filteredAndSortedCourses.map((course) => (
                   <CourseItem
@@ -411,6 +413,7 @@ export function CourseLibrary({
                     onSelect={handleCourseSelect}
                     onRemoveFromLibrary={onRemoveCourse}
                     onToggleCompletion={onToggleCompletion}
+                    onUpdateCourse={onUpdateCourse}
                   />
                 ))}
               </div>
