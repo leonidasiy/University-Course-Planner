@@ -46,7 +46,7 @@ export function ScheduleHeader({
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 className="text-4xl font-bold flex items-center gap-2">
           <GraduationCap className="h-8 w-8" />
-          Course Scheduler
+          Course Planner
         </h1>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
