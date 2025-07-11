@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CourseItem } from './CourseItem';
 import { CourseFilters } from './CourseFilters';
 import { Course } from '../types/schedule';
-import { Plus, Library, Trash2, CheckSquare, Square, Check, X } from 'lucide-react';
+import { Plus, Library, Trash2, CheckSquare, Square, Check, X, Search } from 'lucide-react';
 
 interface CourseLibraryProps {
   courses: Course[];
@@ -50,6 +50,7 @@ export function CourseLibrary({
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
   const [showCompleted, setShowCompleted] = React.useState(true);
   const [showIncomplete, setShowIncomplete] = React.useState(true);
+  const [searchTerm, setSearchTerm] = React.useState('');
   const [newCourse, setNewCourse] = React.useState({
     code: '',
     name: '',
@@ -99,6 +100,14 @@ export function CourseLibrary({
 
   const filteredAndSortedCourses = React.useMemo(() => {
     let filtered = courses.filter(course => {
+      // Filter by search term
+      if (searchTerm.trim()) {
+        const lowerSearchTerm = searchTerm.toLowerCase();
+        const matchesSearch = course.code.toLowerCase().includes(lowerSearchTerm) ||
+                             course.name.toLowerCase().includes(lowerSearchTerm);
+        if (!matchesSearch) return false;
+      }
+
       // Filter by completion status
       if (!showCompleted && course.isCompleted) return false;
       if (!showIncomplete && !course.isCompleted) return false;
@@ -132,7 +141,7 @@ export function CourseLibrary({
       // If same priority, sort alphabetically by course code
       return a.code.localeCompare(b.code);
     });
-  }, [courses, selectedRequirements, selectedCategories, showCompleted, showIncomplete]);
+  }, [courses, selectedRequirements, selectedCategories, showCompleted, showIncomplete, searchTerm]);
 
   const selectedCoursesInLibrary = React.useMemo(() => {
     return filteredAndSortedCourses.filter(course => selectedCourses.has(course.id));
@@ -172,6 +181,10 @@ export function CourseLibrary({
 
   const handleMarkSelectedAsIncomplete = () => {
     onToggleSelectedCompletion(false);
+  };
+
+  const handleSearchClear = () => {
+    setSearchTerm('');
   };
 
   return (
@@ -293,10 +306,10 @@ export function CourseLibrary({
                       <Input
                         id="course-credits"
                         type="number"
-                        min="1"
+                        min="0"
                         max="6"
                         value={newCourse.credits}
-                        onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 3 })}
+                        onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 0 })}
                       />
                     </div>
                     <div>
@@ -353,13 +366,37 @@ export function CourseLibrary({
               </Dialog>
             </div>
           </div>
+
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search courses by code or name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-10"
+            />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSearchClear}
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
         </CardHeader>
         
         <CardContent className="flex-1 overflow-hidden p-0">
           <div className="h-full overflow-y-auto px-6 pb-6">
             {filteredAndSortedCourses.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No courses match the current filters.
+                {searchTerm ? 
+                  `No courses found matching "${searchTerm}".` :
+                  "No courses match the current filters."
+                }
               </div>
             ) : (
               <div className="space-y-2">
