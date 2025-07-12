@@ -20,6 +20,10 @@ interface CourseItemProps {
   onAddToSemester?: (course: Course) => void;
   onUpdateCourse?: (courseId: string, updates: Partial<Course>) => void;
   onReorder?: (semesterId: string, dragIndex: number, dropIndex: number) => void;
+  onInsertAtPosition?: (semesterId: string, course: Course, position: number) => void;
+  onInsertSelectedAtPosition?: (semesterId: string, position: number) => void;
+  onMoveToPosition?: (fromSemesterId: string, toSemesterId: string, courseId: string, position: number) => void;
+  onMoveSelectedToPosition?: (fromSemesterId: string, toSemesterId: string, position: number) => void;
   semesterInfo?: Semester | null;
 }
 
@@ -35,6 +39,10 @@ export function CourseItem({
   onAddToSemester,
   onUpdateCourse,
   onReorder,
+  onInsertAtPosition,
+  onInsertSelectedAtPosition,
+  onMoveToPosition,
+  onMoveSelectedToPosition,
   semesterInfo
 }: CourseItemProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
@@ -139,19 +147,44 @@ export function CourseItem({
     e.stopPropagation();
     setDragOverIndex(null);
 
-    if (!semesterId || typeof courseIndex !== 'number' || !onReorder) return;
+    if (!semesterId || typeof courseIndex !== 'number') return;
 
     try {
       const dragData = e.dataTransfer.getData('application/json');
       const data = JSON.parse(dragData);
       
-      if (data.type === 'course' && data.fromSemester === semesterId && typeof data.courseIndex === 'number') {
+      if (data.type === 'course') {
         const rect = e.currentTarget.getBoundingClientRect();
         const midpoint = rect.top + rect.height / 2;
-        const dropIndex = e.clientY < midpoint ? courseIndex : courseIndex + 1;
+        const dropPosition = e.clientY < midpoint ? courseIndex : courseIndex + 1;
         
-        if (data.courseIndex !== dropIndex && data.courseIndex !== dropIndex - 1) {
-          onReorder(semesterId, data.courseIndex, dropIndex > data.courseIndex ? dropIndex - 1 : dropIndex);
+        // Handle reordering within the same semester
+        if (data.fromSemester === semesterId && typeof data.courseIndex === 'number' && onReorder) {
+          if (data.courseIndex !== dropPosition && data.courseIndex !== dropPosition - 1) {
+            onReorder(semesterId, data.courseIndex, dropPosition > data.courseIndex ? dropPosition - 1 : dropPosition);
+          }
+        } 
+        // Handle drops from other semesters or library
+        else {
+          // Check if course is already in this semester
+          const courseAlreadyInSemester = semesterId && data.courseId;
+          // We'll let the parent components handle the duplicate check
+          
+          if (data.isMultiSelect && isSelected) {
+            // Handle multi-select drops with position
+            if (data.fromSemester && data.fromSemester !== semesterId && onMoveSelectedToPosition) {
+              onMoveSelectedToPosition(data.fromSemester, semesterId, dropPosition);
+            } else if (!data.fromSemester && onInsertSelectedAtPosition) {
+              onInsertSelectedAtPosition(semesterId, dropPosition);
+            }
+          } else {
+            // Handle single course drops with position
+            if (data.fromSemester && data.fromSemester !== semesterId && onMoveToPosition) {
+              onMoveToPosition(data.fromSemester, semesterId, data.courseId, dropPosition);
+            } else if (!data.fromSemester && onInsertAtPosition) {
+              onInsertAtPosition(semesterId, data.course, dropPosition);
+            }
+          }
         }
       }
     } catch (error) {

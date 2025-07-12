@@ -12,11 +12,15 @@ interface SemesterListProps {
   onRemoveSemester: (semesterId: string) => void;
   onClearSemesterCourses: (semesterId: string) => void;
   onAddCourse: (semesterId: string, course: Course) => void;
+  onInsertCourseAtPosition: (semesterId: string, course: Course, position: number) => void;
   onAddSelectedCourses: (semesterId: string) => void;
+  onInsertSelectedCoursesAtPosition: (semesterId: string, position: number) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
   onRemoveSelectedCourses: (semesterId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
+  onMoveCourseToPosition: (fromSemesterId: string, toSemesterId: string, courseId: string, position: number) => void;
   onMoveSelectedCourses: (fromSemesterId: string, toSemesterId: string) => void;
+  onMoveSelectedCoursesToPosition: (fromSemesterId: string, toSemesterId: string, position: number) => void;
   onReorderCourses: (semesterId: string, dragIndex: number, dropIndex: number) => void;
   onToggleCompletion: (courseId: string) => void;
   onToggleSelectedCompletion: (completed: boolean) => void;
@@ -34,11 +38,15 @@ export function SemesterList({
   onRemoveSemester,
   onClearSemesterCourses,
   onAddCourse,
+  onInsertCourseAtPosition,
   onAddSelectedCourses,
+  onInsertSelectedCoursesAtPosition,
   onRemoveCourse,
   onRemoveSelectedCourses,
   onMoveCourse,
+  onMoveCourseToPosition,
   onMoveSelectedCourses,
+  onMoveSelectedCoursesToPosition,
   onReorderCourses,
   onToggleCompletion,
   onToggleSelectedCompletion,
@@ -70,11 +78,15 @@ export function SemesterList({
               onRemove={onRemoveSemester}
               onClearCourses={onClearSemesterCourses}
               onAddCourse={onAddCourse}
+              onInsertCourseAtPosition={onInsertCourseAtPosition}
               onAddSelectedCourses={onAddSelectedCourses}
+              onInsertSelectedCoursesAtPosition={onInsertSelectedCoursesAtPosition}
               onRemoveCourse={onRemoveCourse}
               onRemoveSelectedCourses={onRemoveSelectedCourses}
               onMoveCourse={onMoveCourse}
+              onMoveCourseToPosition={onMoveCourseToPosition}
               onMoveSelectedCourses={onMoveSelectedCourses}
+              onMoveSelectedCoursesToPosition={onMoveSelectedCoursesToPosition}
               onReorderCourses={onReorderCourses}
               onToggleCompletion={onToggleCompletion}
               onToggleSelectedCompletion={onToggleSelectedCompletion}

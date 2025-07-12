@@ -19,11 +19,15 @@ interface SemesterCardProps {
   onRemove: (semesterId: string) => void;
   onClearCourses: (semesterId: string) => void;
   onAddCourse: (semesterId: string, course: Course) => void;
+  onInsertCourseAtPosition: (semesterId: string, course: Course, position: number) => void;
   onAddSelectedCourses: (semesterId: string) => void;
+  onInsertSelectedCoursesAtPosition: (semesterId: string, position: number) => void;
   onRemoveCourse: (semesterId: string, courseId: string) => void;
   onRemoveSelectedCourses: (semesterId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
+  onMoveCourseToPosition: (fromSemesterId: string, toSemesterId: string, courseId: string, position: number) => void;
   onMoveSelectedCourses: (fromSemesterId: string, toSemesterId: string) => void;
+  onMoveSelectedCoursesToPosition: (fromSemesterId: string, toSemesterId: string, position: number) => void;
   onReorderCourses: (semesterId: string, dragIndex: number, dropIndex: number) => void;
   onToggleCompletion: (courseId: string) => void;
   onToggleSelectedCompletion: (completed: boolean) => void;
@@ -79,11 +83,15 @@ export function SemesterCard({
   onRemove,
   onClearCourses,
   onAddCourse,
+  onInsertCourseAtPosition,
   onAddSelectedCourses,
+  onInsertSelectedCoursesAtPosition,
   onRemoveCourse,
   onRemoveSelectedCourses,
   onMoveCourse,
+  onMoveCourseToPosition,
   onMoveSelectedCourses,
+  onMoveSelectedCoursesToPosition,
   onReorderCourses,
   onToggleCompletion,
   onToggleSelectedCompletion,
@@ -220,26 +228,29 @@ export function SemesterCard({
           return;
         }
 
+        // For general semester drops (not on specific course), add to the end
+        const position = semester.courses.length;
+
         // Handle multi-select drops
         if (data.isMultiSelect && selectedCourses.has(data.courseId)) {
           console.log('Handling multi-select drop');
           if (data.fromSemester && data.fromSemester !== semester.id) {
             console.log('Moving selected courses from semester:', data.fromSemester, 'to:', semester.id);
-            onMoveSelectedCourses(data.fromSemester, semester.id);
+            onMoveSelectedCoursesToPosition(data.fromSemester, semester.id, position);
           } else if (!data.fromSemester || data.isFromLibrary) {
             console.log('Adding selected courses from library to semester:', semester.id);
-            onAddSelectedCourses(semester.id);
+            onInsertSelectedCoursesAtPosition(semester.id, position);
           }
         } else {
           // Handle single course drops
           console.log('Handling single course drop');
           if (data.fromSemester && data.fromSemester !== semester.id) {
             console.log('Moving single course from semester:', data.fromSemester, 'to:', semester.id);
-            onMoveCourse(data.fromSemester, semester.id, data.courseId);
+            onMoveCourseToPosition(data.fromSemester, semester.id, data.courseId, position);
           } else if (!data.fromSemester || data.isFromLibrary) {
             console.log('Adding single course from library to semester:', semester.id, 'course:', data.course);
             if (data.course) {
-              onAddCourse(semester.id, data.course);
+              onInsertCourseAtPosition(semester.id, data.course, position);
             } else {
               console.error('No course data found in drag event');
             }
@@ -588,7 +599,7 @@ export function SemesterCard({
         ) : (
           <div className="space-y-2">
             <div className="text-xs text-muted-foreground">
-              Tip: Click on course cards to select/deselect them, drag to reorder, or click the edit icon to modify course details
+              Tip: Click on course cards to select/deselect them, drag to reorder or insert at specific positions, or click the edit icon to modify course details
             </div>
             {semester.courses.map((course, index) => (
               <CourseItem
@@ -602,6 +613,10 @@ export function SemesterCard({
                 onToggleCompletion={onToggleCompletion}
                 onUpdateCourse={onUpdateCourse}
                 onReorder={onReorderCourses}
+                onInsertAtPosition={onInsertCourseAtPosition}
+                onInsertSelectedAtPosition={onInsertSelectedCoursesAtPosition}
+                onMoveToPosition={onMoveCourseToPosition}
+                onMoveSelectedToPosition={onMoveSelectedCoursesToPosition}
               />
             ))}
           </div>

@@ -22,11 +22,15 @@ export function SchedulePage() {
     removeSemester,
     clearSemesterCourses,
     addCourseToSemester,
+    insertCourseAtPosition,
     addSelectedCoursesToSemester,
+    insertSelectedCoursesAtPosition,
     removeCourseFromSemester,
     removeSelectedCoursesFromSemester,
     moveCourse,
+    moveCourseToPosition,
     moveSelectedCourses,
+    moveSelectedCoursesToPosition,
     reorderCoursesInSemester,
     addCourseToLibrary,
     removeCourseFromLibrary,
@@ -120,11 +124,15 @@ export function SchedulePage() {
             onRemoveSemester={removeSemester}
             onClearSemesterCourses={clearSemesterCourses}
             onAddCourse={addCourseToSemester}
+            onInsertCourseAtPosition={insertCourseAtPosition}
             onAddSelectedCourses={addSelectedCoursesToSemester}
+            onInsertSelectedCoursesAtPosition={insertSelectedCoursesAtPosition}
             onRemoveCourse={removeCourseFromSemester}
             onRemoveSelectedCourses={removeSelectedCoursesFromSemester}
             onMoveCourse={moveCourse}
+            onMoveCourseToPosition={moveCourseToPosition}
             onMoveSelectedCourses={moveSelectedCourses}
+            onMoveSelectedCoursesToPosition={moveSelectedCoursesToPosition}
             onReorderCourses={reorderCoursesInSemester}
             onToggleCompletion={toggleCourseCompletion}
             onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
@@ -142,31 +150,4 @@ export function SchedulePage() {
           <CourseLibrary
             courses={availableCourses}
             semesters={semesters}
-            selectedCourses={selectedCourses}
-            onSelect={handleCourseSelect}
-            onSelectAll={selectAllCourses}
-            onClearSelection={clearSelection}
-            onAddCourse={addCourseToLibrary}
-            onRemoveCourse={removeCourseFromLibrary}
-            onRemoveSelected={removeSelectedCoursesFromLibrary}
-            onToggleCompletion={toggleCourseCompletion}
-            onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
-            onUpdateCourse={updateCourse}
-            findCourseInSemesters={findCourseInSemesters}
-          />
-          
-          {selectedCourses.size > 0 && (
-            <div className="text-center text-sm text-muted-foreground">
-              <p>
-                {selectedCourses.size} course{selectedCourses.size !== 1 ? 's' : ''} selected
-              </p>
-              <p className="mt-1">
-                Keyboard shortcuts: Ctrl+A (select all), Ctrl+D (deselect all), Esc (clear selection)
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+            selecte
