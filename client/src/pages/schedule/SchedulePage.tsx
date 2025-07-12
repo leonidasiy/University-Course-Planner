@@ -150,4 +150,31 @@ export function SchedulePage() {
           <CourseLibrary
             courses={availableCourses}
             semesters={semesters}
-            selecte
+            selectedCourses={selectedCourses}
+            onSelect={handleCourseSelect}
+            onSelectAll={selectAllCourses}
+            onClearSelection={clearSelection}
+            onAddCourse={addCourseToLibrary}
+            onRemoveCourse={removeCourseFromLibrary}
+            onRemoveSelected={removeSelectedCoursesFromLibrary}
+            onToggleCompletion={toggleCourseCompletion}
+            onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
+            onUpdateCourse={updateCourse}
+            findCourseInSemesters={findCourseInSemesters}
+          />
+          
+          {selectedCourses.size > 0 && (
+            <div className="text-center text-sm text-muted-foreground">
+              <p>
+                {selectedCourses.size} course{selectedCourses.size !== 1 ? 's' : ''} selected
+              </p>
+              <p className="mt-1">
+                Keyboard shortcuts: Ctrl+A (select all), Ctrl+D (deselect all), Esc (clear selection)
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
