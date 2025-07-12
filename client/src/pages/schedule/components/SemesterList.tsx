@@ -17,6 +17,7 @@ interface SemesterListProps {
   onRemoveSelectedCourses: (semesterId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
   onMoveSelectedCourses: (fromSemesterId: string, toSemesterId: string) => void;
+  onReorderCourses: (semesterId: string, dragIndex: number, dropIndex: number) => void;
   onToggleCompletion: (courseId: string) => void;
   onToggleSelectedCompletion: (completed: boolean) => void;
   onUpdateSemesterName?: (semesterId: string, newName: string) => void;
@@ -38,6 +39,7 @@ export function SemesterList({
   onRemoveSelectedCourses,
   onMoveCourse,
   onMoveSelectedCourses,
+  onReorderCourses,
   onToggleCompletion,
   onToggleSelectedCompletion,
   onUpdateSemesterName,
@@ -73,6 +75,7 @@ export function SemesterList({
               onRemoveSelectedCourses={onRemoveSelectedCourses}
               onMoveCourse={onMoveCourse}
               onMoveSelectedCourses={onMoveSelectedCourses}
+              onReorderCourses={onReorderCourses}
               onToggleCompletion={onToggleCompletion}
               onToggleSelectedCompletion={onToggleSelectedCompletion}
               onUpdateSemesterName={onUpdateSemesterName}

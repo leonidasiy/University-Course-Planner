@@ -27,6 +27,7 @@ export function SchedulePage() {
     removeSelectedCoursesFromSemester,
     moveCourse,
     moveSelectedCourses,
+    reorderCoursesInSemester,
     addCourseToLibrary,
     removeCourseFromLibrary,
     removeSelectedCoursesFromLibrary,
@@ -34,6 +35,7 @@ export function SchedulePage() {
     toggleSelectedCoursesCompletion,
     updateCourse,
     searchCourseInSemesters,
+    findCourseInSemesters,
     totalCredits,
     completedCredits,
     requirementCredits
@@ -123,6 +125,7 @@ export function SchedulePage() {
             onRemoveSelectedCourses={removeSelectedCoursesFromSemester}
             onMoveCourse={moveCourse}
             onMoveSelectedCourses={moveSelectedCourses}
+            onReorderCourses={reorderCoursesInSemester}
             onToggleCompletion={toggleCourseCompletion}
             onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
             onUpdateSemesterName={updateSemesterName}
@@ -138,6 +141,7 @@ export function SchedulePage() {
           
           <CourseLibrary
             courses={availableCourses}
+            semesters={semesters}
             selectedCourses={selectedCourses}
             onSelect={handleCourseSelect}
             onSelectAll={selectAllCourses}
@@ -148,6 +152,7 @@ export function SchedulePage() {
             onToggleCompletion={toggleCourseCompletion}
             onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
             onUpdateCourse={updateCourse}
+            findCourseInSemesters={findCourseInSemesters}
           />
           
           {selectedCourses.size > 0 && (

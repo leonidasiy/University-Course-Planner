@@ -465,4 +465,92 @@ export function SemesterCard({
             )}
           </div>
         </div>
+      </CardHeader>
       
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="relative">
+            <Input
+              placeholder="Search and add courses..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full"
+            />
+            {searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-10 bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                {searchResults.map((course) => (
+                  <div key={course.id} className="p-2 border-b last:border-b-0">
+                    <CourseItem
+                      course={course}
+                      onAddToSemester={handleAddCourseFromSearch}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            <Combobox
+              options={courseOptions}
+              value={selectedCourseId}
+              onValueChange={handleComboboxValueChange}
+              placeholder="Or select from dropdown..."
+              searchPlaceholder="Search courses by code or name..."
+              emptyText="No courses found."
+              className="flex-1 min-w-0"
+            />
+            <Button
+              onClick={handleAddCourseFromDropdown}
+              disabled={!selectedCourseId}
+              size="sm"
+              className="shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+            
+            {selectedAvailableCourses.length > 0 && (
+              <Button
+                onClick={() => onAddSelectedCourses(semester.id)}
+                size="sm"
+                variant="outline"
+                className="shrink-0"
+              >
+                Add Selected ({selectedAvailableCourses.length})
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {semester.courses.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-muted rounded-lg">
+            {availableCourses.length > 0 
+              ? "Add courses using search above or drag courses here"
+              : "No courses available to add"
+            }
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground">
+              Tip: Click on course cards to select/deselect them, drag to reorder, or click the edit icon to modify course details
+            </div>
+            {semester.courses.map((course, index) => (
+              <CourseItem
+                key={course.id}
+                course={course}
+                semesterId={semester.id}
+                courseIndex={index}
+                isSelected={selectedCourses.has(course.id)}
+                onSelect={handleCourseSelect}
+                onRemove={onRemoveCourse}
+                onToggleCompletion={onToggleCompletion}
+                onUpdateCourse={onUpdateCourse}
+                onReorder={onReorderCourses}
+              />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
