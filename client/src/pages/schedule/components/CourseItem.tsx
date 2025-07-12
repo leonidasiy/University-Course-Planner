@@ -102,7 +102,8 @@ export function CourseItem({
       course: course,
       fromSemester: semesterId || null,
       courseIndex: courseIndex,
-      isMultiSelect: isSelected
+      isMultiSelect: isSelected,
+      isFromLibrary: !semesterId // Track if this is from library
     };
     e.dataTransfer.setData('application/json', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
@@ -254,6 +255,9 @@ export function CourseItem({
     );
   };
 
+  // Only show semester info in library view and if the course is actually in a semester
+  const shouldShowSemesterInfo = !semesterId && semesterInfo;
+
   return (
     <>
       {/* Drop indicator for reordering */}
@@ -304,8 +308,8 @@ export function CourseItem({
                   {course.name}
                 </div>
                 
-                {/* Show semester info in library view */}
-                {semesterInfo && (
+                {/* Show semester info in library view only if course is actually in a semester */}
+                {shouldShowSemesterInfo && (
                   <div className="flex items-center gap-1 mt-1">
                     <MapPin className="h-3 w-3 text-muted-foreground" />
                     <Badge variant="outline" className="text-xs text-green-600 border-green-600">

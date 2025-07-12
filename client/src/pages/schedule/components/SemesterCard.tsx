@@ -190,25 +190,43 @@ export function SemesterCard({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const dragData = e.dataTransfer.getData('application/json');
-    const data = JSON.parse(dragData);
     
-    if (data.type === 'course') {
-      if (data.isMultiSelect) {
-        // Handle multi-select drop
-        if (data.fromSemester) {
-          onMoveSelectedCourses(data.fromSemester, semester.id);
-        } else {
-          onAddSelectedCourses(semester.id);
+    try {
+      const dragData = e.dataTransfer.getData('application/json');
+      const data = JSON.parse(dragData);
+      
+      console.log('Drop data received:', data);
+      
+      if (data.type === 'course') {
+        // Check if course is already in this semester
+        const courseAlreadyInSemester = semester.courses.some(c => c.id === data.courseId);
+        if (courseAlreadyInSemester) {
+          console.log('Course already in this semester, ignoring drop');
+          return;
         }
-      } else {
-        // Handle single course drop
-        if (data.fromSemester) {
-          onMoveCourse(data.fromSemester, semester.id, data.courseId);
+
+        if (data.isMultiSelect) {
+          // Handle multi-select drop
+          if (data.fromSemester && data.fromSemester !== semester.id) {
+            console.log('Moving selected courses from semester:', data.fromSemester, 'to:', semester.id);
+            onMoveSelectedCourses(data.fromSemester, semester.id);
+          } else if (data.isFromLibrary) {
+            console.log('Adding selected courses from library to semester:', semester.id);
+            onAddSelectedCourses(semester.id);
+          }
         } else {
-          onAddCourse(semester.id, data.course);
+          // Handle single course drop
+          if (data.fromSemester && data.fromSemester !== semester.id) {
+            console.log('Moving single course from semester:', data.fromSemester, 'to:', semester.id);
+            onMoveCourse(data.fromSemester, semester.id, data.courseId);
+          } else if (data.isFromLibrary || !data.fromSemester) {
+            console.log('Adding single course from library to semester:', semester.id);
+            onAddCourse(semester.id, data.course);
+          }
         }
       }
+    } catch (error) {
+      console.error('Error parsing drop data:', error);
     }
   };
 
