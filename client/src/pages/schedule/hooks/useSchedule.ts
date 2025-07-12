@@ -197,6 +197,16 @@ export function useSchedule() {
     }
   }, [autoSave, isLoading]);
 
+  // Helper function to find which semester a course is in
+  const findCourseInSemesters = React.useCallback((courseId: string) => {
+    for (const semester of scheduleData.semesters) {
+      if (semester.courses.some(c => c.id === courseId)) {
+        return semester;
+      }
+    }
+    return null;
+  }, [scheduleData.semesters]);
+
   // Multi-select functions
   const toggleCourseSelection = React.useCallback((courseId: string) => {
     setSelectedCourses(prev => {
@@ -303,41 +313,46 @@ export function useSchedule() {
     if (semester) {
       const newData = {
         semesters: scheduleData.semesters.filter(s => s.id !== semesterId),
-        availableCourses: [...scheduleData.availableCourses, ...semester.courses]
+        availableCourses: scheduleData.availableCourses // Don't move courses back, just remove the semester
       };
       updateScheduleData(newData);
     }
   };
 
   const clearSemesterCourses = (semesterId: string) => {
-    const semester = scheduleData.semesters.find(s => s.id === semesterId);
-    if (semester) {
-      const newData = {
-        semesters: scheduleData.semesters.map(s =>
-          s.id === semesterId ? { ...s, courses: [] } : s
-        ),
-        availableCourses: [...scheduleData.availableCourses, ...semester.courses]
-      };
-      updateScheduleData(newData);
-    }
+    const newData = {
+      semesters: scheduleData.semesters.map(s =>
+        s.id === semesterId ? { ...s, courses: [] } : s
+      ),
+      availableCourses: scheduleData.availableCourses // Don't move courses back to library
+    };
+    updateScheduleData(newData);
   };
 
   const addCourseToSemester = (semesterId: string, course: Course) => {
+    // Check if course is already in this semester
+    const semester = scheduleData.semesters.find(s => s.id === semesterId);
+    if (semester && semester.courses.some(c => c.id === course.id)) {
+      console.log('Course already in this semester');
+      return;
+    }
+
     const newData = {
       semesters: scheduleData.semesters.map(semester =>
         semester.id === semesterId
           ? { ...semester, courses: [...semester.courses, course] }
           : semester
       ),
-      availableCourses: scheduleData.availableCourses.filter(c => c.id !== course.id)
+      availableCourses: scheduleData.availableCourses // Keep courses in library
     };
     updateScheduleData(newData);
   };
 
   const addSelectedCoursesToSemester = (semesterId: string) => {
-    const coursesToAdd = getSelectedCourses().filter(course => 
-      scheduleData.availableCourses.some(c => c.id === course.id)
-    );
+    const coursesToAdd = getSelectedCourses().filter(course => {
+      const semester = scheduleData.semesters.find(s => s.id === semesterId);
+      return semester && !semester.courses.some(c => c.id === course.id);
+    });
     
     if (coursesToAdd.length === 0) return;
 
@@ -347,9 +362,7 @@ export function useSchedule() {
           ? { ...semester, courses: [...semester.courses, ...coursesToAdd] }
           : semester
       ),
-      availableCourses: scheduleData.availableCourses.filter(c => 
-        !coursesToAdd.some(course => course.id === c.id)
-      )
+      availableCourses: scheduleData.availableCourses // Keep courses in library
     };
     
     updateScheduleData(newData);
@@ -357,39 +370,25 @@ export function useSchedule() {
   };
 
   const removeCourseFromSemester = (semesterId: string, courseId: string) => {
-    const semester = scheduleData.semesters.find(s => s.id === semesterId);
-    const course = semester?.courses.find(c => c.id === courseId);
-    
-    if (course) {
-      const newData = {
-        semesters: scheduleData.semesters.map(s =>
-          s.id === semesterId
-            ? { ...s, courses: s.courses.filter(c => c.id !== courseId) }
-            : s
-        ),
-        availableCourses: [...scheduleData.availableCourses, course]
-      };
-      updateScheduleData(newData);
-    }
+    const newData = {
+      semesters: scheduleData.semesters.map(s =>
+        s.id === semesterId
+          ? { ...s, courses: s.courses.filter(c => c.id !== courseId) }
+          : s
+      ),
+      availableCourses: scheduleData.availableCourses // Keep courses in library
+    };
+    updateScheduleData(newData);
   };
 
   const removeSelectedCoursesFromSemester = (semesterId: string) => {
-    const semester = scheduleData.semesters.find(s => s.id === semesterId);
-    if (!semester) return;
-
-    const selectedInSemester = semester.courses.filter(course => 
-      selectedCourses.has(course.id)
-    );
-    
-    if (selectedInSemester.length === 0) return;
-
     const newData = {
       semesters: scheduleData.semesters.map(s =>
         s.id === semesterId
           ? { ...s, courses: s.courses.filter(c => !selectedCourses.has(c.id)) }
           : s
       ),
-      availableCourses: [...scheduleData.availableCourses, ...selectedInSemester]
+      availableCourses: scheduleData.availableCourses // Keep courses in library
     };
     
     updateScheduleData(newData);
@@ -400,9 +399,10 @@ export function useSchedule() {
     if (fromSemesterId === toSemesterId) return;
 
     const fromSemester = scheduleData.semesters.find(s => s.id === fromSemesterId);
+    const toSemester = scheduleData.semesters.find(s => s.id === toSemesterId);
     const course = fromSemester?.courses.find(c => c.id === courseId);
     
-    if (course) {
+    if (course && toSemester && !toSemester.courses.some(c => c.id === courseId)) {
       const newData = {
         ...scheduleData,
         semesters: scheduleData.semesters.map(semester => {
@@ -428,7 +428,7 @@ export function useSchedule() {
     if (!fromSemester || !toSemester) return;
 
     const coursesToMove = fromSemester.courses.filter(course => 
-      selectedCourses.has(course.id)
+      selectedCourses.has(course.id) && !toSemester.courses.some(c => c.id === course.id)
     );
     
     if (coursesToMove.length === 0) return;
@@ -450,6 +450,24 @@ export function useSchedule() {
     clearSelection();
   };
 
+  const reorderCoursesInSemester = (semesterId: string, dragIndex: number, dropIndex: number) => {
+    const semester = scheduleData.semesters.find(s => s.id === semesterId);
+    if (!semester || dragIndex === dropIndex) return;
+
+    const reorderedCourses = [...semester.courses];
+    const [draggedCourse] = reorderedCourses.splice(dragIndex, 1);
+    reorderedCourses.splice(dropIndex, 0, draggedCourse);
+
+    const newData = {
+      ...scheduleData,
+      semesters: scheduleData.semesters.map(s =>
+        s.id === semesterId ? { ...s, courses: reorderedCourses } : s
+      )
+    };
+    
+    updateScheduleData(newData);
+  };
+
   const addCourseToLibrary = (course: Course) => {
     const newData = {
       ...scheduleData,
@@ -459,16 +477,24 @@ export function useSchedule() {
   };
 
   const removeCourseFromLibrary = (courseId: string) => {
+    // Remove course from both library and all semesters
     const newData = {
-      ...scheduleData,
+      semesters: scheduleData.semesters.map(semester => ({
+        ...semester,
+        courses: semester.courses.filter(c => c.id !== courseId)
+      })),
       availableCourses: scheduleData.availableCourses.filter(c => c.id !== courseId)
     };
     updateScheduleData(newData);
   };
 
   const removeSelectedCoursesFromLibrary = () => {
+    // Remove courses from both library and all semesters
     const newData = {
-      ...scheduleData,
+      semesters: scheduleData.semesters.map(semester => ({
+        ...semester,
+        courses: semester.courses.filter(c => !selectedCourses.has(c.id))
+      })),
       availableCourses: scheduleData.availableCourses.filter(c => !selectedCourses.has(c.id))
     };
     updateScheduleData(newData);
@@ -526,7 +552,11 @@ export function useSchedule() {
     scheduleData.semesters.forEach(semester => {
       courses.push(...semester.courses);
     });
-    return courses;
+    // Remove duplicates by ID
+    const uniqueCourses = courses.filter((course, index, self) => 
+      self.findIndex(c => c.id === course.id) === index
+    );
+    return uniqueCourses;
   }, [scheduleData]);
 
   const totalCredits = React.useMemo(() => {
@@ -581,6 +611,7 @@ export function useSchedule() {
     removeSelectedCoursesFromSemester,
     moveCourse,
     moveSelectedCourses,
+    reorderCoursesInSemester,
     addCourseToLibrary,
     removeCourseFromLibrary,
     removeSelectedCoursesFromLibrary,
@@ -588,6 +619,7 @@ export function useSchedule() {
     toggleSelectedCoursesCompletion,
     updateCourse,
     searchCourseInSemesters,
+    findCourseInSemesters,
     totalCredits,
     completedCredits,
     requirementCredits

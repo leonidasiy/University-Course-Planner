@@ -5,12 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Course } from '../types/schedule';
-import { GripVertical, X, Edit, Check } from 'lucide-react';
+import { Course, Semester } from '../types/schedule';
+import { GripVertical, X, Edit, Check, MapPin } from 'lucide-react';
 
 interface CourseItemProps {
   course: Course;
   semesterId?: string;
+  courseIndex?: number;
   isSelected?: boolean;
   onSelect?: (courseId: string, isSelected: boolean) => void;
   onRemove?: (semesterId: string, courseId: string) => void;
@@ -18,36 +19,140 @@ interface CourseItemProps {
   onToggleCompletion?: (courseId: string) => void;
   onAddToSemester?: (course: Course) => void;
   onUpdateCourse?: (courseId: string, updates: Partial<Course>) => void;
+  onReorder?: (semesterId: string, dragIndex: number, dropIndex: number) => void;
+  semesterInfo?: Semester | null;
 }
 
 export function CourseItem({ 
   course, 
   semesterId, 
+  courseIndex,
   isSelected = false,
   onSelect,
   onRemove, 
   onRemoveFromLibrary, 
   onToggleCompletion,
   onAddToSemester,
-  onUpdateCourse
+  onUpdateCourse,
+  onReorder,
+  semesterInfo
 }: CourseItemProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [editingCourse, setEditingCourse] = React.useState<Course>(course);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     setEditingCourse(course);
   }, [course]);
 
+  // Auto-scroll functionality
+  React.useEffect(() => {
+    if (!isDragging) return;
+
+    let scrollInterval: NodeJS.Timeout;
+
+    const handleAutoScroll = (e: MouseEvent) => {
+      const scrollSpeed = 15; // Increased from default
+      const scrollMargin = 100;
+      const viewportHeight = window.innerHeight;
+
+      if (e.clientY < scrollMargin) {
+        // Scroll up
+        window.scrollBy(0, -scrollSpeed);
+      } else if (e.clientY > viewportHeight - scrollMargin) {
+        // Scroll down
+        window.scrollBy(0, scrollSpeed);
+      }
+    };
+
+    const startAutoScroll = () => {
+      scrollInterval = setInterval(() => {
+        const mouseEvent = new MouseEvent('mousemove', {
+          clientX: 0,
+          clientY: document.querySelector('.dragging-course')?.getBoundingClientRect().top || 0
+        });
+        handleAutoScroll(mouseEvent);
+      }, 50); // Faster interval for smoother scrolling
+    };
+
+    const stopAutoScroll = () => {
+      if (scrollInterval) {
+        clearInterval(scrollInterval);
+      }
+    };
+
+    document.addEventListener('mousemove', handleAutoScroll);
+    startAutoScroll();
+
+    return () => {
+      document.removeEventListener('mousemove', handleAutoScroll);
+      stopAutoScroll();
+    };
+  }, [isDragging]);
+
   const handleDragStart = (e: React.DragEvent) => {
+    setIsDragging(true);
     const dragData = {
       type: 'course',
       courseId: course.id,
       course: course,
       fromSemester: semesterId || null,
+      courseIndex: courseIndex,
       isMultiSelect: isSelected
     };
     e.dataTransfer.setData('application/json', JSON.stringify(dragData));
     e.dataTransfer.effectAllowed = 'move';
+    
+    // Add a class to the element being dragged for auto-scroll detection
+    const target = e.target as HTMLElement;
+    target.classList.add('dragging-course');
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    setIsDragging(false);
+    setDragOverIndex(null);
+    const target = e.target as HTMLElement;
+    target.classList.remove('dragging-course');
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (semesterId && typeof courseIndex === 'number') {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      const dropIndex = e.clientY < midpoint ? courseIndex : courseIndex + 1;
+      setDragOverIndex(dropIndex);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverIndex(null);
+
+    if (!semesterId || typeof courseIndex !== 'number' || !onReorder) return;
+
+    try {
+      const dragData = e.dataTransfer.getData('application/json');
+      const data = JSON.parse(dragData);
+      
+      if (data.type === 'course' && data.fromSemester === semesterId && typeof data.courseIndex === 'number') {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        const dropIndex = e.clientY < midpoint ? courseIndex : courseIndex + 1;
+        
+        if (data.courseIndex !== dropIndex && data.courseIndex !== dropIndex - 1) {
+          onReorder(semesterId, data.courseIndex, dropIndex > data.courseIndex ? dropIndex - 1 : dropIndex);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling course reorder drop:', error);
+    }
   };
 
   const handleRemoveClick = (e: React.MouseEvent) => {
@@ -148,9 +253,18 @@ export function CourseItem({
 
   return (
     <>
+      {/* Drop indicator for reordering */}
+      {dragOverIndex === courseIndex && (
+        <div className="h-2 bg-primary/30 rounded-full mx-2 mb-1" />
+      )}
+      
       <Card
         draggable
         onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         onClick={handleCardClick}
         className={`cursor-pointer hover:shadow-md transition-all ${
           course.isCompleted ? 'bg-green-50 border-green-200' : ''
@@ -158,6 +272,8 @@ export function CourseItem({
           isSelected ? 'ring-2 ring-primary ring-offset-2 bg-primary/10 shadow-md' : ''
         } ${
           onSelect || onAddToSemester ? 'hover:bg-accent/50' : 'cursor-move'
+        } ${
+          isDragging ? 'opacity-50 rotate-2' : ''
         }`}
       >
         <CardContent className="p-3">
@@ -184,6 +300,16 @@ export function CourseItem({
                 <div className={`text-xs break-words ${course.isCompleted ? 'line-through text-muted-foreground' : 'text-muted-foreground'}`}>
                   {course.name}
                 </div>
+                
+                {/* Show semester info in library view */}
+                {semesterInfo && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                    <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                      {semesterInfo.name}
+                    </Badge>
+                  </div>
+                )}
                 
                 <div className="flex flex-wrap items-center gap-1 mt-2">
                   {getCategoryBadge()}
@@ -226,6 +352,10 @@ export function CourseItem({
           </div>
         </CardContent>
       </Card>
+
+      {dragOverIndex === courseIndex + 1 && (
+        <div className="h-2 bg-primary/30 rounded-full mx-2 mt-1" />
+      )}
 
       {onUpdateCourse && (
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

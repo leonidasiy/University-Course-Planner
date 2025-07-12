@@ -9,11 +9,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { CourseFilters } from './CourseFilters';
-import { Course } from '../types/schedule';
+import { Course, Semester } from '../types/schedule';
 import { Plus, Library, Trash2, CheckSquare, Square, Check, X, Search } from 'lucide-react';
 
 interface CourseLibraryProps {
   courses: Course[];
+  semesters: Semester[];
   selectedCourses: Set<string>;
   onSelect: (courseId: string, isSelected: boolean) => void;
   onSelectAll: (courses: Course[]) => void;
@@ -24,6 +25,7 @@ interface CourseLibraryProps {
   onToggleCompletion: (courseId: string) => void;
   onToggleSelectedCompletion: (completed: boolean) => void;
   onUpdateCourse?: (courseId: string, updates: Partial<Course>) => void;
+  findCourseInSemesters: (courseId: string) => Semester | null;
 }
 
 // Define the sorting priority for course requirements
@@ -36,6 +38,7 @@ const getRequirementPriority = (course: Course): number => {
 
 export function CourseLibrary({ 
   courses, 
+  semesters,
   selectedCourses,
   onSelect,
   onSelectAll,
@@ -45,11 +48,13 @@ export function CourseLibrary({
   onRemoveSelected,
   onToggleCompletion,
   onToggleSelectedCompletion,
-  onUpdateCourse
+  onUpdateCourse,
+  findCourseInSemesters
 }: CourseLibraryProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedRequirements, setSelectedRequirements] = React.useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
+  const [selectedSemesterFilters, setSelectedSemesterFilters] = React.useState<string[]>([]);
   const [showCompleted, setShowCompleted] = React.useState(true);
   const [showIncomplete, setShowIncomplete] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -120,15 +125,34 @@ export function CourseLibrary({
       }
 
       // Filter by requirements
-      if (selectedRequirements.length === 0) return true;
-
-      if (selectedRequirements.includes('OTHER') && course.majorRequirements.length === 0) {
-        return true;
+      if (selectedRequirements.length > 0) {
+        if (selectedRequirements.includes('OTHER') && course.majorRequirements.length === 0) {
+          // Allow courses with no requirements if OTHER is selected
+        } else if (!selectedRequirements.some(req => 
+          req !== 'OTHER' && course.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')
+        )) {
+          return false;
+        }
       }
 
-      return selectedRequirements.some(req => 
-        req !== 'OTHER' && course.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')
-      );
+      // Filter by semester
+      if (selectedSemesterFilters.length > 0) {
+        const courseInSemester = findCourseInSemesters(course.id);
+        const isInLibraryOnly = !courseInSemester;
+        
+        if (selectedSemesterFilters.includes('LIBRARY_ONLY') && !isInLibraryOnly) {
+          return false;
+        } else if (!selectedSemesterFilters.includes('LIBRARY_ONLY') && 
+                   courseInSemester && 
+                   !selectedSemesterFilters.includes(courseInSemester.id)) {
+          return false;
+        } else if (!selectedSemesterFilters.includes('LIBRARY_ONLY') && 
+                   isInLibraryOnly) {
+          return false;
+        }
+      }
+
+      return true;
     });
 
     // Sort courses by requirement priority, then alphabetically by code
@@ -143,7 +167,7 @@ export function CourseLibrary({
       // If same priority, sort alphabetically by course code
       return a.code.localeCompare(b.code);
     });
-  }, [courses, selectedRequirements, selectedCategories, showCompleted, showIncomplete, searchTerm]);
+  }, [courses, selectedRequirements, selectedCategories, selectedSemesterFilters, showCompleted, showIncomplete, searchTerm, findCourseInSemesters]);
 
   const selectedCoursesInLibrary = React.useMemo(() => {
     return filteredAndSortedCourses.filter(course => selectedCourses.has(course.id));
@@ -164,6 +188,10 @@ export function CourseLibrary({
       noneCompleted: completedCount === 0
     };
   }, [selectedCoursesInLibrary]);
+
+  const availableSemesterOptions = React.useMemo(() => {
+    return semesters.map(sem => ({ id: sem.id, name: sem.name }));
+  }, [semesters]);
 
   const handleSelectAll = () => {
     if (allCoursesSelected) {
@@ -196,6 +224,9 @@ export function CourseLibrary({
         onRequirementsChange={setSelectedRequirements}
         selectedCategories={selectedCategories}
         onCategoriesChange={setSelectedCategories}
+        selectedSemesters={selectedSemesterFilters}
+        onSemestersChange={setSelectedSemesterFilters}
+        availableSemesters={availableSemesterOptions}
         showCompleted={showCompleted}
         onShowCompletedChange={setShowCompleted}
         showIncomplete={showIncomplete}
@@ -414,6 +445,7 @@ export function CourseLibrary({
                     onRemoveFromLibrary={onRemoveCourse}
                     onToggleCompletion={onToggleCompletion}
                     onUpdateCourse={onUpdateCourse}
+                    semesterInfo={findCourseInSemesters(course.id)}
                   />
                 ))}
               </div>

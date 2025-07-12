@@ -9,6 +9,9 @@ interface CourseFiltersProps {
   onRequirementsChange: (requirements: string[]) => void;
   selectedCategories: string[];
   onCategoriesChange: (categories: string[]) => void;
+  selectedSemesters: string[];
+  onSemestersChange: (semesters: string[]) => void;
+  availableSemesters: Array<{id: string, name: string}>;
   showCompleted: boolean;
   onShowCompletedChange: (show: boolean) => void;
   showIncomplete: boolean;
@@ -20,6 +23,9 @@ export function CourseFilters({
   onRequirementsChange,
   selectedCategories,
   onCategoriesChange,
+  selectedSemesters,
+  onSemestersChange,
+  availableSemesters,
   showCompleted,
   onShowCompletedChange,
   showIncomplete,
@@ -38,6 +44,15 @@ export function CourseFilters({
     { id: 'Electives', name: 'Electives', color: 'text-indigo-600 border-indigo-600' }
   ];
 
+  const semesterOptions = [
+    { id: 'LIBRARY_ONLY', name: 'Library Only', color: 'text-gray-600 border-gray-600' },
+    ...availableSemesters.map(sem => ({
+      id: sem.id,
+      name: sem.name,
+      color: 'text-green-600 border-green-600'
+    }))
+  ];
+
   const handleRequirementToggle = (requirementId: string) => {
     if (selectedRequirements.includes(requirementId)) {
       onRequirementsChange(selectedRequirements.filter(id => id !== requirementId));
@@ -51,6 +66,14 @@ export function CourseFilters({
       onCategoriesChange(selectedCategories.filter(id => id !== categoryId));
     } else {
       onCategoriesChange([...selectedCategories, categoryId]);
+    }
+  };
+
+  const handleSemesterToggle = (semesterId: string) => {
+    if (selectedSemesters.includes(semesterId)) {
+      onSemestersChange(selectedSemesters.filter(id => id !== semesterId));
+    } else {
+      onSemestersChange([...selectedSemesters, semesterId]);
     }
   };
 
@@ -96,6 +119,26 @@ export function CourseFilters({
                 <label htmlFor={category.id} className="text-sm">
                   <Badge variant="outline" className={category.color}>
                     {category.name}
+                  </Badge>
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-medium mb-2">Semester Filter</h4>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {semesterOptions.map((semester) => (
+              <div key={semester.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`semester-${semester.id}`}
+                  checked={selectedSemesters.includes(semester.id)}
+                  onCheckedChange={() => handleSemesterToggle(semester.id)}
+                />
+                <label htmlFor={`semester-${semester.id}`} className="text-sm">
+                  <Badge variant="outline" className={semester.color}>
+                    {semester.name}
                   </Badge>
                 </label>
               </div>

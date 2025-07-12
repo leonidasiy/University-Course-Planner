@@ -24,6 +24,7 @@ interface SemesterCardProps {
   onRemoveSelectedCourses: (semesterId: string) => void;
   onMoveCourse: (fromSemesterId: string, toSemesterId: string, courseId: string) => void;
   onMoveSelectedCourses: (fromSemesterId: string, toSemesterId: string) => void;
+  onReorderCourses: (semesterId: string, dragIndex: number, dropIndex: number) => void;
   onToggleCompletion: (courseId: string) => void;
   onToggleSelectedCompletion: (completed: boolean) => void;
   onUpdateSemesterName?: (semesterId: string, newName: string) => void;
@@ -83,6 +84,7 @@ export function SemesterCard({
   onRemoveSelectedCourses,
   onMoveCourse,
   onMoveSelectedCourses,
+  onReorderCourses,
   onToggleCompletion,
   onToggleSelectedCompletion,
   onUpdateSemesterName,
@@ -153,29 +155,33 @@ export function SemesterCard({
     };
   }, [selectedCoursesInSemester]);
 
-  // Search functionality
+  // Search functionality - filter out courses already in this semester
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     if (value.trim()) {
-      const results = availableCourses.filter(course => 
-        course.code.toLowerCase().includes(value.toLowerCase()) ||
-        course.name.toLowerCase().includes(value.toLowerCase())
-      ).slice(0, 5); // Limit to 5 results
+      const results = availableCourses.filter(course => {
+        const matchesSearch = course.code.toLowerCase().includes(value.toLowerCase()) ||
+                             course.name.toLowerCase().includes(value.toLowerCase());
+        const notInSemester = !semester.courses.some(c => c.id === course.id);
+        return matchesSearch && notInSemester;
+      }).slice(0, 5); // Limit to 5 results
       setSearchResults(results);
     } else {
       setSearchResults([]);
     }
   };
 
-  const courseOptions = availableCourses.map(course => {
-    const reqText = course.majorRequirements.length > 0 
-      ? ` [${course.majorRequirements.join(', ')}]` 
-      : '';
-    return {
-      value: course.id,
-      label: `${course.code} - ${course.name} (${course.credits} credits)${reqText}`
-    };
-  });
+  const courseOptions = availableCourses
+    .filter(course => !semester.courses.some(c => c.id === course.id))
+    .map(course => {
+      const reqText = course.majorRequirements.length > 0 
+        ? ` [${course.majorRequirements.join(', ')}]` 
+        : '';
+      return {
+        value: course.id,
+        label: `${course.code} - ${course.name} (${course.credits} credits)${reqText}`
+      };
+    });
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -406,7 +412,7 @@ export function SemesterCard({
                   <div className="space-y-4">
                     <p>Are you sure you want to remove all courses from {semester.name}?</p>
                     <p className="text-sm text-muted-foreground">
-                      This will move all {semester.courses.length} course{semester.courses.length !== 1 ? 's' : ''} back to the course library.
+                      This will remove all {semester.courses.length} course{semester.courses.length !== 1 ? 's' : ''} from this semester.
                     </p>
                     <div className="flex gap-2 justify-end">
                       <Button variant="outline" onClick={() => setClearDialogOpen(false)}>
@@ -442,7 +448,7 @@ export function SemesterCard({
                     {semester.courses.length > 0 && (
                       <p className="text-sm text-muted-foreground">
                         This semester contains {semester.courses.length} course{semester.courses.length !== 1 ? 's' : ''}. 
-                        All courses will be moved back to the course library.
+                        The courses will remain in the Course Library.
                       </p>
                     )}
                     <div className="flex gap-2 justify-end">
@@ -459,90 +465,4 @@ export function SemesterCard({
             )}
           </div>
         </div>
-      </CardHeader>
       
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="relative">
-            <Input
-              placeholder="Search and add courses..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full"
-            />
-            {searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 z-10 bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                {searchResults.map((course) => (
-                  <div key={course.id} className="p-2 border-b last:border-b-0">
-                    <CourseItem
-                      course={course}
-                      onAddToSemester={handleAddCourseFromSearch}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          <div className="flex gap-2 flex-wrap">
-            <Combobox
-              options={courseOptions}
-              value={selectedCourseId}
-              onValueChange={handleComboboxValueChange}
-              placeholder="Or select from dropdown..."
-              searchPlaceholder="Search courses by code or name..."
-              emptyText="No courses found."
-              className="flex-1 min-w-0"
-            />
-            <Button
-              onClick={handleAddCourseFromDropdown}
-              disabled={!selectedCourseId}
-              size="sm"
-              className="shrink-0"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-            
-            {selectedAvailableCourses.length > 0 && (
-              <Button
-                onClick={() => onAddSelectedCourses(semester.id)}
-                size="sm"
-                variant="outline"
-                className="shrink-0"
-              >
-                Add Selected ({selectedAvailableCourses.length})
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {semester.courses.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-muted rounded-lg">
-            {availableCourses.length > 0 
-              ? "Add courses using search above or drag courses here"
-              : "No courses available to add"
-            }
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <div className="text-xs text-muted-foreground">
-              Tip: Click on course cards to select/deselect them, or click the edit icon to modify course details
-            </div>
-            {semester.courses.map((course) => (
-              <CourseItem
-                key={course.id}
-                course={course}
-                semesterId={semester.id}
-                isSelected={selectedCourses.has(course.id)}
-                onSelect={handleCourseSelect}
-                onRemove={onRemoveCourse}
-                onToggleCompletion={onToggleCompletion}
-                onUpdateCourse={onUpdateCourse}
-              />
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
