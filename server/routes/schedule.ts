@@ -16,10 +16,11 @@ router.get('/data', async (req: express.Request, res: express.Response) => {
     const semestersFromDb = await db.selectFrom('semesters').selectAll().execute();
     console.log(`Found ${semestersFromDb.length} semesters`);
     
-    // Get semester-course relationships
+    // Get semester-course relationships with ordering
     const semesterCourses = await db
       .selectFrom('semester_courses')
       .selectAll()
+      .orderBy('order_index', 'asc')
       .execute();
     console.log(`Found ${semesterCourses.length} semester-course relationships`);
     
@@ -35,13 +36,14 @@ router.get('/data', async (req: express.Request, res: express.Response) => {
     }));
     
     const semesters = semestersFromDb.map(semester => {
-      const semesterCourseIds = semesterCourses
+      // Get semester courses ordered by order_index
+      const semesterCourseRelations = semesterCourses
         .filter(sc => sc.semester_id === semester.id)
-        .map(sc => sc.course_id);
+        .sort((a, b) => a.order_index - b.order_index);
       
-      const semesterCourseList = courses.filter(course => 
-        semesterCourseIds.includes(course.id)
-      );
+      const semesterCourseList = semesterCourseRelations
+        .map(relation => courses.find(course => course.id === relation.course_id))
+        .filter(course => course !== undefined);
       
       return {
         id: semester.id,
@@ -124,13 +126,16 @@ router.post('/data', async (req: express.Request, res: express.Response) => {
           })
           .execute();
         
-        // Insert semester-course relationships
-        for (const course of semester.courses) {
+        // Insert semester-course relationships with order
+        console.log(`Inserting ${semester.courses.length} courses for semester ${semester.name}`);
+        for (let i = 0; i < semester.courses.length; i++) {
+          const course = semester.courses[i];
           await trx
             .insertInto('semester_courses')
             .values({
               semester_id: semester.id,
               course_id: course.id,
+              order_index: i, // Store the order index
               created_at: new Date().toISOString()
             })
             .execute();

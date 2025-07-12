@@ -29,5 +29,6 @@ export interface SemesterCoursesTable {
   id: number;
   semester_id: string;
   course_id: string;
+  order_index: number;
   created_at: string;
 }
