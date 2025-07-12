@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CourseItem } from './CourseItem';
 import { CourseFilters } from './CourseFilters';
 import { Course, Semester } from '../types/schedule';
-import { Plus, Library, Trash2, CheckSquare, Square, Check, X, Search } from 'lucide-react';
+import { Plus, Library, Trash2, CheckSquare, Square, Check, X, Search, AlertTriangle } from 'lucide-react';
 
 interface CourseLibraryProps {
   courses: Course[];
@@ -52,12 +52,15 @@ export function CourseLibrary({
   findCourseInSemesters
 }: CourseLibraryProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = React.useState(false);
+  const [isRemoveSelectedDialogOpen, setIsRemoveSelectedDialogOpen] = React.useState(false);
   const [selectedRequirements, setSelectedRequirements] = React.useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
   const [selectedSemesterFilters, setSelectedSemesterFilters] = React.useState<string[]>([]);
   const [showCompleted, setShowCompleted] = React.useState(true);
   const [showIncomplete, setShowIncomplete] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [courseToRemove, setCourseToRemove] = React.useState<string | null>(null);
   const [newCourse, setNewCourse] = React.useState({
     code: '',
     name: '',
@@ -103,6 +106,28 @@ export function CourseLibrary({
         majorRequirements: [...newCourse.majorRequirements, requirement]
       });
     }
+  };
+
+  const handleRemoveCourseFromLibrary = (courseId: string) => {
+    setCourseToRemove(courseId);
+    setIsRemoveDialogOpen(true);
+  };
+
+  const confirmRemoveCourse = () => {
+    if (courseToRemove) {
+      onRemoveCourse(courseToRemove);
+      setCourseToRemove(null);
+    }
+    setIsRemoveDialogOpen(false);
+  };
+
+  const handleRemoveSelectedFromLibrary = () => {
+    setIsRemoveSelectedDialogOpen(true);
+  };
+
+  const confirmRemoveSelected = () => {
+    onRemoveSelected();
+    setIsRemoveSelectedDialogOpen(false);
   };
 
   const filteredAndSortedCourses = React.useMemo(() => {
@@ -217,6 +242,8 @@ export function CourseLibrary({
     setSearchTerm('');
   };
 
+  const courseToRemoveDetails = courseToRemove ? courses.find(c => c.id === courseToRemove) : null;
+
   return (
     <div className="space-y-4">
       <CourseFilters
@@ -295,7 +322,7 @@ export function CourseLibrary({
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={onRemoveSelected}
+                    onClick={handleRemoveSelectedFromLibrary}
                     className="flex items-center gap-1"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -442,7 +469,7 @@ export function CourseLibrary({
                     course={course}
                     isSelected={selectedCourses.has(course.id)}
                     onSelect={handleCourseSelect}
-                    onRemoveFromLibrary={onRemoveCourse}
+                    onRemoveFromLibrary={handleRemoveCourseFromLibrary}
                     onToggleCompletion={onToggleCompletion}
                     onUpdateCourse={onUpdateCourse}
                     semesterInfo={findCourseInSemesters(course.id)}
@@ -453,6 +480,93 @@ export function CourseLibrary({
           </div>
         </CardContent>
       </Card>
+
+      {/* Single Course Removal Warning Dialog */}
+      <Dialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Permanently Remove Course
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <p className="text-sm font-medium text-destructive mb-1">Warning: This action cannot be undone</p>
+              <p className="text-sm text-muted-foreground">
+                This will permanently delete the course from the database and remove it from all semesters.
+              </p>
+            </div>
+            
+            {courseToRemoveDetails && (
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-sm font-medium">{courseToRemoveDetails.code}</p>
+                <p className="text-sm text-muted-foreground">{courseToRemoveDetails.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">{courseToRemoveDetails.credits} credits</p>
+              </div>
+            )}
+            
+            <p className="text-sm">
+              Are you sure you want to permanently remove this course from the system?
+            </p>
+            
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setIsRemoveDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmRemoveCourse}>
+                Permanently Remove
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Multiple Courses Removal Warning Dialog */}
+      <Dialog open={isRemoveSelectedDialogOpen} onOpenChange={setIsRemoveSelectedDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Permanently Remove Selected Courses
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <p className="text-sm font-medium text-destructive mb-1">Warning: This action cannot be undone</p>
+              <p className="text-sm text-muted-foreground">
+                This will permanently delete all selected courses from the database and remove them from all semesters.
+              </p>
+            </div>
+            
+            <div className="bg-muted/50 rounded-lg p-3">
+              <p className="text-sm font-medium mb-2">
+                {selectedCoursesInLibrary.length} course{selectedCoursesInLibrary.length !== 1 ? 's' : ''} will be removed:
+              </p>
+              <div className="max-h-32 overflow-y-auto space-y-1">
+                {selectedCoursesInLibrary.map(course => (
+                  <div key={course.id} className="text-xs">
+                    <span className="font-medium">{course.code}</span> - {course.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <p className="text-sm">
+              Are you sure you want to permanently remove these courses from the system?
+            </p>
+            
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setIsRemoveSelectedDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmRemoveSelected}>
+                Permanently Remove All
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

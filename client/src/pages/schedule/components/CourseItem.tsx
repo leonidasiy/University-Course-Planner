@@ -195,8 +195,10 @@ export function CourseItem({
   const handleRemoveClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (semesterId && onRemove) {
+      // Remove from semester only (does not delete from database)
       onRemove(semesterId, course.id);
     } else if (onRemoveFromLibrary) {
+      // Permanent removal from library (deletes from database)
       onRemoveFromLibrary(course.id);
     }
   };
@@ -291,6 +293,15 @@ export function CourseItem({
   // Only show semester info in library view and if the course is actually in a semester
   const shouldShowSemesterInfo = !semesterId && semesterInfo;
 
+  // Determine remove button title based on context
+  const getRemoveButtonTitle = () => {
+    if (semesterId) {
+      return "Remove from semester (course remains in library)";
+    } else {
+      return "Permanently delete course from database";
+    }
+  };
+
   return (
     <>
       {/* Drop indicator for reordering */}
@@ -383,8 +394,10 @@ export function CourseItem({
                 variant="ghost"
                 size="sm"
                 onClick={handleRemoveClick}
-                className="h-6 w-6 p-0 flex-shrink-0"
-                title="Remove course"
+                className={`h-6 w-6 p-0 flex-shrink-0 ${
+                  !semesterId ? 'text-destructive hover:text-destructive' : ''
+                }`}
+                title={getRemoveButtonTitle()}
               >
                 <X className="h-3 w-3" />
               </Button>
