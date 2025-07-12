@@ -244,7 +244,12 @@ export function useSchedule() {
   const getSelectedCourses = React.useCallback(() => {
     const allCourses: Course[] = [...scheduleData.availableCourses];
     scheduleData.semesters.forEach(semester => {
-      allCourses.push(...semester.courses);
+      semester.courses.forEach(course => {
+        // Avoid duplicates since availableCourses now contains all courses
+        if (!allCourses.find(c => c.id === course.id)) {
+          allCourses.push(course);
+        }
+      });
     });
     
     return allCourses.filter(course => selectedCourses.has(course.id));
@@ -313,7 +318,7 @@ export function useSchedule() {
     if (semester) {
       const newData = {
         semesters: scheduleData.semesters.filter(s => s.id !== semesterId),
-        availableCourses: scheduleData.availableCourses // Don't move courses back, just remove the semester
+        availableCourses: scheduleData.availableCourses // Keep all courses in library
       };
       updateScheduleData(newData);
     }
@@ -324,7 +329,7 @@ export function useSchedule() {
       semesters: scheduleData.semesters.map(s =>
         s.id === semesterId ? { ...s, courses: [] } : s
       ),
-      availableCourses: scheduleData.availableCourses // Don't move courses back to library
+      availableCourses: scheduleData.availableCourses // Keep all courses in library
     };
     updateScheduleData(newData);
   };
@@ -343,7 +348,7 @@ export function useSchedule() {
           ? { ...semester, courses: [...semester.courses, course] }
           : semester
       ),
-      availableCourses: scheduleData.availableCourses // Keep courses in library
+      availableCourses: scheduleData.availableCourses // Keep all courses in library
     };
     updateScheduleData(newData);
   };
@@ -365,7 +370,7 @@ export function useSchedule() {
       semesters: scheduleData.semesters.map(s =>
         s.id === semesterId ? { ...s, courses: newCourses } : s
       ),
-      availableCourses: scheduleData.availableCourses // Keep courses in library
+      availableCourses: scheduleData.availableCourses // Keep all courses in library
     };
     updateScheduleData(newData);
   };
@@ -384,7 +389,7 @@ export function useSchedule() {
           ? { ...semester, courses: [...semester.courses, ...coursesToAdd] }
           : semester
       ),
-      availableCourses: scheduleData.availableCourses // Keep courses in library
+      availableCourses: scheduleData.availableCourses // Keep all courses in library
     };
     
     updateScheduleData(newData);
@@ -408,7 +413,7 @@ export function useSchedule() {
       semesters: scheduleData.semesters.map(s =>
         s.id === semesterId ? { ...s, courses: newCourses } : s
       ),
-      availableCourses: scheduleData.availableCourses // Keep courses in library
+      availableCourses: scheduleData.availableCourses // Keep all courses in library
     };
     
     updateScheduleData(newData);
@@ -422,7 +427,7 @@ export function useSchedule() {
           ? { ...s, courses: s.courses.filter(c => c.id !== courseId) }
           : s
       ),
-      availableCourses: scheduleData.availableCourses // Keep courses in library
+      availableCourses: scheduleData.availableCourses // Keep all courses in library
     };
     updateScheduleData(newData);
   };
@@ -434,7 +439,7 @@ export function useSchedule() {
           ? { ...s, courses: s.courses.filter(c => !selectedCourses.has(c.id)) }
           : s
       ),
-      availableCourses: scheduleData.availableCourses // Keep courses in library
+      availableCourses: scheduleData.availableCourses // Keep all courses in library
     };
     
     updateScheduleData(newData);
@@ -653,18 +658,11 @@ export function useSchedule() {
     return results;
   };
 
-  // Calculate totals
+  // Calculate totals using unique courses (avoid double counting)
   const allCourses = React.useMemo(() => {
-    const courses: Course[] = [...scheduleData.availableCourses];
-    scheduleData.semesters.forEach(semester => {
-      courses.push(...semester.courses);
-    });
-    // Remove duplicates by ID
-    const uniqueCourses = courses.filter((course, index, self) => 
-      self.findIndex(c => c.id === course.id) === index
-    );
-    return uniqueCourses;
-  }, [scheduleData]);
+    // Use availableCourses as the source of truth since it contains all courses
+    return scheduleData.availableCourses;
+  }, [scheduleData.availableCourses]);
 
   const totalCredits = React.useMemo(() => {
     return allCourses.reduce((sum, course) => sum + course.credits, 0);

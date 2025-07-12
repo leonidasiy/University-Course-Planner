@@ -52,11 +52,9 @@ router.get('/data', async (req: express.Request, res: express.Response) => {
       };
     });
     
-    // Available courses are those not assigned to any semester
-    const assignedCourseIds = semesterCourses.map(sc => sc.course_id);
-    const availableCourses = courses.filter(course => 
-      !assignedCourseIds.includes(course.id)
-    );
+    // Available courses should include ALL courses from the database
+    // This allows the Course Library to show all courses with proper filtering
+    const availableCourses = courses;
     
     console.log(`Returning ${semesters.length} semesters and ${availableCourses.length} available courses`);
     
