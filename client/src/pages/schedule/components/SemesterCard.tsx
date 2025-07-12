@@ -97,6 +97,7 @@ export function SemesterCard({
   const [editName, setEditName] = React.useState(semester.name);
   const [searchResults, setSearchResults] = React.useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [isDragOver, setIsDragOver] = React.useState(false);
 
   const isRequiredSemester = REQUIRED_SEMESTER_IDS.includes(semester.id);
 
@@ -186,16 +187,30 @@ export function SemesterCard({
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Only set isDragOver to false if we're actually leaving the semester card
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
     
     try {
       const dragData = e.dataTransfer.getData('application/json');
+      if (!dragData) {
+        console.log('No drag data found');
+        return;
+      }
+
       const data = JSON.parse(dragData);
-      
-      console.log('Drop data received:', data);
+      console.log('Drop data received in semester', semester.id, ':', data);
       
       if (data.type === 'course') {
         // Check if course is already in this semester
@@ -205,23 +220,29 @@ export function SemesterCard({
           return;
         }
 
-        if (data.isMultiSelect) {
-          // Handle multi-select drop
+        // Handle multi-select drops
+        if (data.isMultiSelect && selectedCourses.has(data.courseId)) {
+          console.log('Handling multi-select drop');
           if (data.fromSemester && data.fromSemester !== semester.id) {
             console.log('Moving selected courses from semester:', data.fromSemester, 'to:', semester.id);
             onMoveSelectedCourses(data.fromSemester, semester.id);
-          } else if (data.isFromLibrary) {
+          } else if (!data.fromSemester || data.isFromLibrary) {
             console.log('Adding selected courses from library to semester:', semester.id);
             onAddSelectedCourses(semester.id);
           }
         } else {
-          // Handle single course drop
+          // Handle single course drops
+          console.log('Handling single course drop');
           if (data.fromSemester && data.fromSemester !== semester.id) {
             console.log('Moving single course from semester:', data.fromSemester, 'to:', semester.id);
             onMoveCourse(data.fromSemester, semester.id, data.courseId);
-          } else if (data.isFromLibrary || !data.fromSemester) {
-            console.log('Adding single course from library to semester:', semester.id);
-            onAddCourse(semester.id, data.course);
+          } else if (!data.fromSemester || data.isFromLibrary) {
+            console.log('Adding single course from library to semester:', semester.id, 'course:', data.course);
+            if (data.course) {
+              onAddCourse(semester.id, data.course);
+            } else {
+              console.error('No course data found in drag event');
+            }
           }
         }
       }
@@ -298,8 +319,11 @@ export function SemesterCard({
 
   return (
     <Card
-      className={`transition-colors hover:bg-accent/50 border-l-4 ${getSemesterColor(semester.type)}`}
+      className={`transition-colors border-l-4 ${getSemesterColor(semester.type)} ${
+        isDragOver ? 'bg-accent/50 ring-2 ring-primary' : 'hover:bg-accent/50'
+      }`}
       onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <CardHeader className="pb-3">
@@ -485,7 +509,12 @@ export function SemesterCard({
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-4">
+      <CardContent 
+        className="space-y-4"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div className="space-y-2">
           <div className="relative">
             <Input
@@ -541,7 +570,16 @@ export function SemesterCard({
         </div>
 
         {semester.courses.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground border-2 border-dashed border-muted rounded-lg">
+          <div 
+            className={`text-center py-8 border-2 border-dashed rounded-lg transition-colors ${
+              isDragOver 
+                ? 'border-primary bg-primary/10 text-primary' 
+                : 'border-muted text-muted-foreground'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             {availableCourses.length > 0 
               ? "Add courses using search above or drag courses here"
               : "No courses available to add"
