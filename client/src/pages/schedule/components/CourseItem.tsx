@@ -46,44 +46,47 @@ export function CourseItem({
     setEditingCourse(course);
   }, [course]);
 
-  // Auto-scroll functionality
+  // Auto-scroll functionality - only when mouse is near edges
   React.useEffect(() => {
     if (!isDragging) return;
 
     let scrollInterval: NodeJS.Timeout;
 
     const handleAutoScroll = (e: MouseEvent) => {
-      const scrollSpeed = 15; // Increased from default
+      const scrollSpeed = 15;
       const scrollMargin = 100;
       const viewportHeight = window.innerHeight;
 
+      // Only auto-scroll when mouse is near the top or bottom edges
       if (e.clientY < scrollMargin) {
         // Scroll up
-        window.scrollBy(0, -scrollSpeed);
+        if (scrollInterval) clearInterval(scrollInterval);
+        scrollInterval = setInterval(() => {
+          window.scrollBy(0, -scrollSpeed);
+        }, 50);
       } else if (e.clientY > viewportHeight - scrollMargin) {
         // Scroll down
-        window.scrollBy(0, scrollSpeed);
+        if (scrollInterval) clearInterval(scrollInterval);
+        scrollInterval = setInterval(() => {
+          window.scrollBy(0, scrollSpeed);
+        }, 50);
+      } else {
+        // Stop scrolling when mouse is not near edges
+        if (scrollInterval) {
+          clearInterval(scrollInterval);
+          scrollInterval = null;
+        }
       }
-    };
-
-    const startAutoScroll = () => {
-      scrollInterval = setInterval(() => {
-        const mouseEvent = new MouseEvent('mousemove', {
-          clientX: 0,
-          clientY: document.querySelector('.dragging-course')?.getBoundingClientRect().top || 0
-        });
-        handleAutoScroll(mouseEvent);
-      }, 50); // Faster interval for smoother scrolling
     };
 
     const stopAutoScroll = () => {
       if (scrollInterval) {
         clearInterval(scrollInterval);
+        scrollInterval = null;
       }
     };
 
     document.addEventListener('mousemove', handleAutoScroll);
-    startAutoScroll();
 
     return () => {
       document.removeEventListener('mousemove', handleAutoScroll);

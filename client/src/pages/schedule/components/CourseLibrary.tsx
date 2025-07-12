@@ -138,16 +138,16 @@ export function CourseLibrary({
       // Filter by semester
       if (selectedSemesterFilters.length > 0) {
         const courseInSemester = findCourseInSemesters(course.id);
-        const isInLibraryOnly = !courseInSemester;
+        const isInCreditOnly = !courseInSemester;
         
-        if (selectedSemesterFilters.includes('LIBRARY_ONLY') && !isInLibraryOnly) {
+        if (selectedSemesterFilters.includes('CREDIT_ONLY') && !isInCreditOnly) {
           return false;
-        } else if (!selectedSemesterFilters.includes('LIBRARY_ONLY') && 
+        } else if (!selectedSemesterFilters.includes('CREDIT_ONLY') && 
                    courseInSemester && 
                    !selectedSemesterFilters.includes(courseInSemester.id)) {
           return false;
-        } else if (!selectedSemesterFilters.includes('LIBRARY_ONLY') && 
-                   isInLibraryOnly) {
+        } else if (!selectedSemesterFilters.includes('CREDIT_ONLY') && 
+                   isInCreditOnly) {
           return false;
         }
       }
