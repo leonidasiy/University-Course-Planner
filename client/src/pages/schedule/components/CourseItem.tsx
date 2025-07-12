@@ -2,6 +2,8 @@ import * as React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -233,7 +235,21 @@ export function CourseItem({
 
   const handleSaveEdit = () => {
     if (onUpdateCourse) {
+      // Validate required fields
+      if (!editingCourse.code.trim() || !editingCourse.name.trim()) {
+        alert('Course code and name are required.');
+        return;
+      }
+
+      if (editingCourse.credits < 0 || editingCourse.credits > 20) {
+        alert('Credits must be between 0 and 20.');
+        return;
+      }
+
       onUpdateCourse(course.id, {
+        code: editingCourse.code.trim(),
+        name: editingCourse.name.trim(),
+        credits: editingCourse.credits,
         category: editingCourse.category,
         majorRequirements: editingCourse.majorRequirements
       });
@@ -418,20 +434,49 @@ export function CourseItem({
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <div className="font-medium text-sm mb-1">{course.code}</div>
-                <div className="text-sm text-muted-foreground mb-3">{course.name}</div>
-                <div className="text-xs text-muted-foreground">{course.credits} credits</div>
+                <Label htmlFor="edit-course-code">Course Code</Label>
+                <Input
+                  id="edit-course-code"
+                  value={editingCourse.code}
+                  onChange={(e) => setEditingCourse({ ...editingCourse, code: e.target.value })}
+                  placeholder="e.g., COMP1022P"
+                  className="mt-1"
+                />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Category</label>
+                <Label htmlFor="edit-course-name">Course Name</Label>
+                <Input
+                  id="edit-course-name"
+                  value={editingCourse.name}
+                  onChange={(e) => setEditingCourse({ ...editingCourse, name: e.target.value })}
+                  placeholder="e.g., Introduction to Computing with Java"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-course-credits">Credits</Label>
+                <Input
+                  id="edit-course-credits"
+                  type="number"
+                  min="0"
+                  max="20"
+                  value={editingCourse.credits}
+                  onChange={(e) => setEditingCourse({ ...editingCourse, credits: parseInt(e.target.value) || 0 })}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label>Category</Label>
                 <Select 
                   value={editingCourse.category} 
                   onValueChange={(value: 'Prerequisites' | 'Major Requirements' | 'Electives') => 
                     setEditingCourse({ ...editingCourse, category: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -443,8 +488,8 @@ export function CourseItem({
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Major Requirements</label>
-                <div className="space-y-2">
+                <Label>Major Requirements</Label>
+                <div className="space-y-2 mt-2">
                   {['DSCT', 'COSC', 'CCC'].map((req) => (
                     <div key={req} className="flex items-center space-x-2">
                       <Checkbox

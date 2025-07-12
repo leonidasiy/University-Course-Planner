@@ -256,6 +256,8 @@ export function useSchedule() {
   }, [scheduleData, selectedCourses]);
 
   const updateCourse = React.useCallback((courseId: string, updates: Partial<Course>) => {
+    console.log('Updating course:', courseId, 'with updates:', updates);
+    
     const newData = {
       semesters: scheduleData.semesters.map(semester => ({
         ...semester,
