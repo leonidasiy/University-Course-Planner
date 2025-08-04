@@ -84,81 +84,17 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
   }
 
   return (
-    <div 
-      className={`fixed top-1/2 transform -translate-y-1/2 transition-all duration-300 hidden lg:block ${
-        isCollapsed ? 'right-0 z-10' : 'right-1 z-50'
-      }`}
-    >
-      {/* Navigation Panel */}
-      <Card 
-        className={`shadow-lg border-2 transition-all duration-300 w-80 ${
-          isCollapsed 
-            ? 'translate-x-full opacity-0 pointer-events-none scale-95' 
-            : 'translate-x-0 opacity-100 pointer-events-auto scale-100'
-        }`}
-      >
-        <CardContent className="p-2">
-          <div className="space-y-1 max-h-[50vh] overflow-y-auto">
-            <div className="text-xs font-medium text-muted-foreground px-2 py-1 text-center">
-              Quick Navigation
-            </div>
-            {semesters.map((semester) => {
-              const isActive = activeSemesterId === semester.id;
-              const totalCredits = semester.courses.reduce((sum, course) => sum + course.credits, 0);
-              const completedCredits = semester.courses
-                .filter(course => course.isCompleted)
-                .reduce((sum, course) => sum + course.credits, 0);
-              
-              return (
-                <Button
-                  key={semester.id}
-                  variant={isActive ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => handleSemesterClick(semester.id)}
-                  className={`w-full justify-start text-left h-auto p-3 ${
-                    isActive ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent'
-                  }`}
-                >
-                  <div className="w-full">
-                    <div className="flex items-center gap-2 mb-1">
-                      {getSemesterIcon(semester.type)}
-                      <span className="text-sm font-medium truncate leading-tight">
-                        {semester.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs px-2 py-0.5 ${
-                          isActive ? 'border-primary-foreground/20 text-primary-foreground' : ''
-                        }`}
-                      >
-                        {semester.courses.length} courses
-                      </Badge>
-                      <span className={`text-xs ${
-                        isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
-                      }`}>
-                        {completedCredits}/{totalCredits}
-                      </span>
-                    </div>
-                  </div>
-                </Button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Toggle Button - always visible with proper z-index */}
+    <div className="fixed right-0 top-1/2 transform -translate-y-1/2 hidden lg:block">
+      {/* Toggle Button - positioned at the very edge */}
       <Button
         variant="outline"
         size="sm"
         onClick={toggleCollapsed}
-        className={`absolute top-0 h-8 w-8 p-0 shadow-md border-2 transition-all duration-300 z-50 ${
-          isCollapsed 
-            ? 'right-0 rounded-l-md rounded-r-none border-r-0' 
-            : 'right-full rounded-r-md rounded-l-none border-l-0'
-        }`}
+        className="h-8 w-8 p-0 shadow-md border-2 rounded-l-md rounded-r-none border-r-0 z-20"
+        style={{ 
+          position: 'relative',
+          zIndex: 20
+        }}
         title={isCollapsed ? 'Show semester navigation' : 'Hide semester navigation'}
       >
         {isCollapsed ? (
@@ -167,6 +103,68 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
           <ChevronRight className="h-4 w-4" />
         )}
       </Button>
+
+      {/* Navigation Panel - only appears when expanded */}
+      {!isCollapsed && (
+        <Card 
+          className="absolute right-8 top-0 shadow-lg border-2 w-80 z-10 animate-in slide-in-from-right-2 duration-300"
+          style={{
+            transform: 'translateY(-50%)',
+            top: '50%'
+          }}
+        >
+          <CardContent className="p-2">
+            <div className="space-y-1 max-h-[50vh] overflow-y-auto">
+              <div className="text-xs font-medium text-muted-foreground px-2 py-1 text-center">
+                Quick Navigation
+              </div>
+              {semesters.map((semester) => {
+                const isActive = activeSemesterId === semester.id;
+                const totalCredits = semester.courses.reduce((sum, course) => sum + course.credits, 0);
+                const completedCredits = semester.courses
+                  .filter(course => course.isCompleted)
+                  .reduce((sum, course) => sum + course.credits, 0);
+                
+                return (
+                  <Button
+                    key={semester.id}
+                    variant={isActive ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => handleSemesterClick(semester.id)}
+                    className={`w-full justify-start text-left h-auto p-3 ${
+                      isActive ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent'
+                    }`}
+                  >
+                    <div className="w-full">
+                      <div className="flex items-center gap-2 mb-1">
+                        {getSemesterIcon(semester.type)}
+                        <span className="text-sm font-medium truncate leading-tight">
+                          {semester.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs px-2 py-0.5 ${
+                            isActive ? 'border-primary-foreground/20 text-primary-foreground' : ''
+                          }`}
+                        >
+                          {semester.courses.length} courses
+                        </Badge>
+                        <span className={`text-xs ${
+                          isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
+                        }`}>
+                          {completedCredits}/{totalCredits}
+                        </span>
+                      </div>
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
