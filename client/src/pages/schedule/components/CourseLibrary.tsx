@@ -269,179 +269,179 @@ export function CourseLibrary({
 
       <Card className="flex flex-col h-[600px]">
         <CardHeader className="flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Library className="h-5 w-5" />
-              Course Library ({filteredAndSortedCourses.length})
-              {selectedCoursesInLibrary.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {selectedCoursesInLibrary.length} selected
-                </Badge>
-              )}
-            </CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Library className="h-5 w-5" />
+            Course Library ({filteredAndSortedCourses.length})
+            {selectedCoursesInLibrary.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {selectedCoursesInLibrary.length} selected
+              </Badge>
+            )}
+          </CardTitle>
+          
+          {/* First row of buttons - Select All and Add Course */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {filteredAndSortedCourses.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAll}
+                className="flex items-center gap-1"
+              >
+                {allCoursesSelected ? (
+                  <>
+                    <CheckSquare className="h-4 w-4" />
+                    Deselect All
+                  </>
+                ) : (
+                  <>
+                    <Square className="h-4 w-4" />
+                    Select All
+                  </>
+                )}
+              </Button>
+            )}
             
-            <div className="flex items-center gap-2 flex-wrap">
-              {filteredAndSortedCourses.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  className="flex items-center gap-1"
-                >
-                  {allCoursesSelected ? (
-                    <>
-                      <CheckSquare className="h-4 w-4" />
-                      Deselect All
-                    </>
-                  ) : (
-                    <>
-                      <Square className="h-4 w-4" />
-                      Select All
-                    </>
-                  )}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="flex items-center gap-1">
+                  <Plus className="h-4 w-4" />
+                  Add Course
                 </Button>
-              )}
-              
-              {selectedCoursesInLibrary.length > 0 && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleMarkSelectedAsComplete}
-                    className="flex items-center gap-1"
-                    disabled={selectedCoursesCompletionStatus.allCompleted}
-                  >
-                    <Check className="h-4 w-4" />
-                    Mark Complete
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleMarkSelectedAsIncomplete}
-                    className="flex items-center gap-1"
-                    disabled={selectedCoursesCompletionStatus.noneCompleted}
-                  >
-                    <X className="h-4 w-4" />
-                    Mark Incomplete
-                  </Button>
-                  
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleRemoveSelectedFromLibrary}
-                    className="flex items-center gap-1"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Remove ({selectedCoursesInLibrary.length})
-                  </Button>
-                </>
-              )}
-              
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="flex items-center gap-1">
-                    <Plus className="h-4 w-4" />
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add New Course</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="course-code">Course Code</Label>
+                    <Input
+                      id="course-code"
+                      value={newCourse.code}
+                      onChange={(e) => setNewCourse({ ...newCourse, code: e.target.value })}
+                      placeholder="e.g., CS101"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="course-name">Course Name</Label>
+                    <Input
+                      id="course-name"
+                      value={newCourse.name}
+                      onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
+                      placeholder="e.g., Introduction to Computer Science"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="course-credits">Credits</Label>
+                    <Input
+                      id="course-credits"
+                      type="number"
+                      min="0"
+                      max="6"
+                      value={newCourse.credits}
+                      onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Category</Label>
+                    <Select 
+                      value={newCourse.category} 
+                      onValueChange={(value: 'Prerequisites' | 'Major Requirements' | 'Electives' | 'Other') => 
+                        setNewCourse({ ...newCourse, category: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Prerequisites">Prerequisites</SelectItem>
+                        <SelectItem value="Major Requirements">Major Requirements</SelectItem>
+                        <SelectItem value="Electives">Electives</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Major Requirements (select multiple)</Label>
+                    <div className="space-y-2 mt-2 max-h-32 overflow-y-auto">
+                      {majors.map((major) => (
+                        <div key={major.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`new-${major.id}`}
+                            checked={newCourse.majorRequirements.includes(major.id)}
+                            onCheckedChange={() => handleRequirementToggle(major.id)}
+                          />
+                          <label htmlFor={`new-${major.id}`} className="text-sm flex-1">
+                            <Badge 
+                              variant="outline"
+                              style={{
+                                borderColor: major.color,
+                                color: major.color,
+                                backgroundColor: `${major.color}15`
+                              }}
+                            >
+                              {major.id} - {major.name}
+                            </Badge>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="completed"
+                      checked={newCourse.isCompleted}
+                      onCheckedChange={(checked) => setNewCourse({ ...newCourse, isCompleted: !!checked })}
+                    />
+                    <label htmlFor="completed" className="text-sm">
+                      Mark as completed
+                    </label>
+                  </div>
+                  <Button onClick={handleAddCourse} className="w-full">
                     Add Course
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Add New Course</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="course-code">Course Code</Label>
-                      <Input
-                        id="course-code"
-                        value={newCourse.code}
-                        onChange={(e) => setNewCourse({ ...newCourse, code: e.target.value })}
-                        placeholder="e.g., CS101"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="course-name">Course Name</Label>
-                      <Input
-                        id="course-name"
-                        value={newCourse.name}
-                        onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-                        placeholder="e.g., Introduction to Computer Science"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="course-credits">Credits</Label>
-                      <Input
-                        id="course-credits"
-                        type="number"
-                        min="0"
-                        max="6"
-                        value={newCourse.credits}
-                        onChange={(e) => setNewCourse({ ...newCourse, credits: parseInt(e.target.value) || 0 })}
-                      />
-                    </div>
-                    <div>
-                      <Label>Category</Label>
-                      <Select 
-                        value={newCourse.category} 
-                        onValueChange={(value: 'Prerequisites' | 'Major Requirements' | 'Electives' | 'Other') => 
-                          setNewCourse({ ...newCourse, category: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Prerequisites">Prerequisites</SelectItem>
-                          <SelectItem value="Major Requirements">Major Requirements</SelectItem>
-                          <SelectItem value="Electives">Electives</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label>Major Requirements (select multiple)</Label>
-                      <div className="space-y-2 mt-2 max-h-32 overflow-y-auto">
-                        {majors.map((major) => (
-                          <div key={major.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`new-${major.id}`}
-                              checked={newCourse.majorRequirements.includes(major.id)}
-                              onCheckedChange={() => handleRequirementToggle(major.id)}
-                            />
-                            <label htmlFor={`new-${major.id}`} className="text-sm flex-1">
-                              <Badge 
-                                variant="outline"
-                                style={{
-                                  borderColor: major.color,
-                                  color: major.color,
-                                  backgroundColor: `${major.color}15`
-                                }}
-                              >
-                                {major.id} - {major.name}
-                              </Badge>
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="completed"
-                        checked={newCourse.isCompleted}
-                        onCheckedChange={(checked) => setNewCourse({ ...newCourse, isCompleted: !!checked })}
-                      />
-                      <label htmlFor="completed" className="text-sm">
-                        Mark as completed
-                      </label>
-                    </div>
-                    <Button onClick={handleAddCourse} className="w-full">
-                      Add Course
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
+
+          {/* Second row of buttons - Bulk actions for selected courses */}
+          {selectedCoursesInLibrary.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMarkSelectedAsComplete}
+                className="flex items-center gap-1"
+                disabled={selectedCoursesCompletionStatus.allCompleted}
+              >
+                <Check className="h-4 w-4" />
+                Mark Complete
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMarkSelectedAsIncomplete}
+                className="flex items-center gap-1"
+                disabled={selectedCoursesCompletionStatus.noneCompleted}
+              >
+                <X className="h-4 w-4" />
+                Mark Incomplete
+              </Button>
+              
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleRemoveSelectedFromLibrary}
+                className="flex items-center gap-1"
+              >
+                <Trash2 className="h-4 w-4" />
+                Remove ({selectedCoursesInLibrary.length})
+              </Button>
+            </div>
+          )}
 
           {/* Search Bar */}
           <div className="relative">
