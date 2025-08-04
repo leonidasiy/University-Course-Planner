@@ -117,42 +117,47 @@ export function CourseFilters({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-80 p-0 max-h-[80vh] overflow-hidden" 
+        className="w-80 p-0 max-h-[min(80vh,600px)] overflow-hidden" 
         align="start"
         side="bottom"
-        sideOffset={4}
+        sideOffset={8}
+        avoidCollisions={true}
+        collisionPadding={16}
       >
         <Card className="border-0 shadow-none">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex-shrink-0">
             <CardTitle className="text-sm font-medium">Filter Options</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
-            <div>
-              <h4 className="text-sm font-medium mb-2">Major Requirements</h4>
-              <div className="space-y-2">
-                {requirements.map((req) => (
-                  <div key={req.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={req.id}
-                      checked={selectedRequirements.includes(req.id)}
-                      onCheckedChange={() => handleRequirementToggle(req.id)}
-                    />
-                    <label htmlFor={req.id} className="text-sm flex-1">
-                      <Badge 
-                        variant="outline" 
-                        style={{
-                          borderColor: req.color,
-                          color: req.color,
-                          backgroundColor: `${req.color}15`
-                        }}
-                      >
-                        {req.id} - {req.name}
-                      </Badge>
-                    </label>
-                  </div>
-                ))}
+          <CardContent className="space-y-4 overflow-y-auto flex-1" style={{ maxHeight: 'min(60vh, 500px)' }}>
+            {requirements.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-2">Major Requirements</h4>
+                <div className="space-y-2">
+                  {requirements.map((req) => (
+                    <div key={req.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={req.id}
+                        checked={selectedRequirements.includes(req.id)}
+                        onCheckedChange={() => handleRequirementToggle(req.id)}
+                      />
+                      <label htmlFor={req.id} className="text-sm flex-1 cursor-pointer">
+                        <Badge 
+                          variant="outline" 
+                          style={{
+                            borderColor: req.color,
+                            color: req.color,
+                            backgroundColor: `${req.color}15`
+                          }}
+                          className="text-xs"
+                        >
+                          {req.id} - {req.name}
+                        </Badge>
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div>
               <h4 className="text-sm font-medium mb-2">Categories</h4>
@@ -164,7 +169,7 @@ export function CourseFilters({
                       checked={selectedCategories.includes(category.id)}
                       onCheckedChange={() => handleCategoryToggle(category.id)}
                     />
-                    <label htmlFor={category.id} className="text-sm">
+                    <label htmlFor={category.id} className="text-sm cursor-pointer">
                       <Badge 
                         variant="outline" 
                         style={{
@@ -172,6 +177,7 @@ export function CourseFilters({
                           color: category.color,
                           backgroundColor: `${category.color}15`
                         }}
+                        className="text-xs"
                       >
                         {category.name}
                       </Badge>
@@ -190,7 +196,7 @@ export function CourseFilters({
                     checked={showCompleted}
                     onCheckedChange={onShowCompletedChange}
                   />
-                  <label htmlFor="completed" className="text-sm">
+                  <label htmlFor="completed" className="text-sm cursor-pointer">
                     Show Completed
                   </label>
                 </div>
@@ -200,39 +206,42 @@ export function CourseFilters({
                     checked={showIncomplete}
                     onCheckedChange={onShowIncompleteChange}
                   />
-                  <label htmlFor="incomplete" className="text-sm">
+                  <label htmlFor="incomplete" className="text-sm cursor-pointer">
                     Show Incomplete
                   </label>
                 </div>
               </div>
             </div>
 
-            <div>
-              <h4 className="text-sm font-medium mb-2">Semester Filter</h4>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {semesterOptions.map((semester) => (
-                  <div key={semester.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`semester-${semester.id}`}
-                      checked={selectedSemesters.includes(semester.id)}
-                      onCheckedChange={() => handleSemesterToggle(semester.id)}
-                    />
-                    <label htmlFor={`semester-${semester.id}`} className="text-sm">
-                      <Badge 
-                        variant="outline" 
-                        style={{
-                          borderColor: semester.color,
-                          color: semester.color,
-                          backgroundColor: `${semester.color}15`
-                        }}
-                      >
-                        {semester.name}
-                      </Badge>
-                    </label>
-                  </div>
-                ))}
+            {semesterOptions.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-2">Semester Filter</h4>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {semesterOptions.map((semester) => (
+                    <div key={semester.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`semester-${semester.id}`}
+                        checked={selectedSemesters.includes(semester.id)}
+                        onCheckedChange={() => handleSemesterToggle(semester.id)}
+                      />
+                      <label htmlFor={`semester-${semester.id}`} className="text-sm cursor-pointer">
+                        <Badge 
+                          variant="outline" 
+                          style={{
+                            borderColor: semester.color,
+                            color: semester.color,
+                            backgroundColor: `${semester.color}15`
+                          }}
+                          className="text-xs"
+                        >
+                          {semester.name}
+                        </Badge>
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </PopoverContent>
