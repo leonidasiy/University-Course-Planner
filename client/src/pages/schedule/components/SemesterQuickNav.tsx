@@ -85,27 +85,6 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
 
   return (
     <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-40 hidden xl:block">
-      {/* Toggle Button */}
-      <div className={`transition-all duration-300 ${isCollapsed ? 'translate-x-0' : 'translate-x-[-12px]'}`}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleCollapsed}
-          className={`absolute top-0 h-8 w-8 p-0 shadow-md border-2 transition-all duration-300 ${
-            isCollapsed 
-              ? 'right-0 rounded-l-md rounded-r-none border-r-0' 
-              : 'right-full rounded-r-md rounded-l-none border-l-0'
-          }`}
-          title={isCollapsed ? 'Show semester navigation' : 'Hide semester navigation'}
-        >
-          {isCollapsed ? (
-            <ChevronLeft className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-
       {/* Navigation Panel */}
       <Card 
         className={`shadow-lg border-2 transition-all duration-300 ${
@@ -163,6 +142,27 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
           </div>
         </CardContent>
       </Card>
+
+      {/* Toggle Button - positioned on the right side */}
+      <div className={`transition-all duration-300 ${isCollapsed ? 'translate-x-0' : 'translate-x-[12px]'}`}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleCollapsed}
+          className={`absolute top-0 h-8 w-8 p-0 shadow-md border-2 transition-all duration-300 ${
+            isCollapsed 
+              ? 'left-full rounded-r-md rounded-l-none border-l-0' 
+              : 'left-0 rounded-l-md rounded-r-none border-r-0'
+          }`}
+          title={isCollapsed ? 'Show semester navigation' : 'Hide semester navigation'}
+        >
+          {isCollapsed ? (
+            <ChevronLeft className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
     </div>
   );
 }
