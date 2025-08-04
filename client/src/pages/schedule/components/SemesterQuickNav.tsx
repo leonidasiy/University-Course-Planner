@@ -13,13 +13,13 @@ interface SemesterQuickNavProps {
 const getSemesterIcon = (type: string) => {
   switch (type) {
     case 'Fall':
-      return <Leaf className="h-3 w-3 text-orange-600" />;
+      return <Leaf className="h-2.5 w-2.5 text-orange-600" />;
     case 'Spring':
-      return <Flower className="h-3 w-3 text-green-600" />;
+      return <Flower className="h-2.5 w-2.5 text-green-600" />;
     case 'Summer':
-      return <Sun className="h-3 w-3 text-yellow-600" />;
+      return <Sun className="h-2.5 w-2.5 text-yellow-600" />;
     default:
-      return <Calendar className="h-3 w-3" />;
+      return <Calendar className="h-2.5 w-2.5" />;
   }
 };
 
@@ -84,16 +84,16 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
   }
 
   return (
-    <div className="fixed right-2 top-1/2 transform -translate-y-1/2 z-40 hidden lg:block">
+    <div className="fixed right-1 top-1/2 transform -translate-y-1/2 z-40 hidden lg:block">
       {/* Navigation Panel */}
       <Card 
         className={`shadow-lg border-2 transition-all duration-300 ${
           isCollapsed ? 'translate-x-full opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'
         }`}
       >
-        <CardContent className="p-1.5">
-          <div className="space-y-1 max-h-[50vh] overflow-y-auto">
-            <div className="text-[10px] font-medium text-muted-foreground px-1 py-1 text-center">
+        <CardContent className="p-1">
+          <div className="space-y-0.5 max-h-[50vh] overflow-y-auto">
+            <div className="text-[8px] font-medium text-muted-foreground px-1 py-0.5 text-center">
               Nav
             </div>
             {semesters.map((semester) => {
@@ -109,27 +109,27 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
                   onClick={() => handleSemesterClick(semester.id)}
-                  className={`w-full justify-start text-left h-auto p-1.5 min-w-[120px] ${
+                  className={`w-full justify-start text-left h-auto p-1 min-w-[90px] ${
                     isActive ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent'
                   }`}
                 >
                   <div className="w-full">
-                    <div className="flex items-center gap-1 mb-1">
+                    <div className="flex items-center gap-1 mb-0.5">
                       {getSemesterIcon(semester.type)}
-                      <span className="text-[11px] font-medium truncate leading-tight">
+                      <span className="text-[9px] font-medium truncate leading-tight">
                         {semester.name}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-[9px]">
+                    <div className="flex items-center justify-between text-[8px]">
                       <Badge 
                         variant="outline" 
-                        className={`text-[8px] px-1 py-0 h-3 ${
+                        className={`text-[7px] px-0.5 py-0 h-2.5 ${
                           isActive ? 'border-primary-foreground/20 text-primary-foreground' : ''
                         }`}
                       >
                         {semester.courses.length}
                       </Badge>
-                      <span className={`text-[9px] ${
+                      <span className={`text-[8px] ${
                         isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
                       }`}>
                         {completedCredits}/{totalCredits}
@@ -148,7 +148,7 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
         variant="outline"
         size="sm"
         onClick={toggleCollapsed}
-        className={`absolute top-0 h-8 w-8 p-0 shadow-md border-2 transition-all duration-300 ${
+        className={`absolute top-0 h-7 w-7 p-0 shadow-md border-2 transition-all duration-300 ${
           isCollapsed 
             ? 'right-0 rounded-l-md rounded-r-none border-r-0' 
             : 'right-full rounded-r-md rounded-l-none border-l-0'
@@ -156,9 +156,9 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
         title={isCollapsed ? 'Show semester navigation' : 'Hide semester navigation'}
       >
         {isCollapsed ? (
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-3 w-3" />
         ) : (
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3 w-3" />
         )}
       </Button>
     </div>
