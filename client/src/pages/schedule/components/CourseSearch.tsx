@@ -45,6 +45,10 @@ export function CourseSearch({ onSearch, onNavigateToSemester, majors = [] }: Co
         semesterElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
+    
+    // Clear search results to collapse the menu
+    setSearchTerm('');
+    setSearchResults([]);
   };
 
   const getMajorRequirementBadges = (course: Course) => {
