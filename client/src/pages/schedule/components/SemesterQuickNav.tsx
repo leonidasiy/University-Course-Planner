@@ -84,11 +84,15 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
   }
 
   return (
-    <div className="fixed right-1 top-1/2 transform -translate-y-1/2 z-40 hidden lg:block">
-      {/* Navigation Panel - made same width as Course Search bar with proper height */}
+    <div className={`fixed top-1/2 transform -translate-y-1/2 z-40 hidden lg:block transition-all duration-300 ${
+      isCollapsed ? 'right-0' : 'right-1'
+    }`}>
+      {/* Navigation Panel */}
       <Card 
         className={`shadow-lg border-2 transition-all duration-300 w-80 ${
-          isCollapsed ? 'translate-x-full opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'
+          isCollapsed 
+            ? 'translate-x-full opacity-0 pointer-events-none scale-95' 
+            : 'translate-x-0 opacity-100 pointer-events-auto scale-100'
         }`}
       >
         <CardContent className="p-2">
@@ -143,7 +147,7 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
         </CardContent>
       </Card>
 
-      {/* Toggle Button - always visible on the right side */}
+      {/* Toggle Button - always visible and properly positioned */}
       <Button
         variant="outline"
         size="sm"
@@ -154,6 +158,7 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
             : 'right-full rounded-r-md rounded-l-none border-l-0'
         }`}
         title={isCollapsed ? 'Show semester navigation' : 'Hide semester navigation'}
+        style={{ zIndex: 50 }}
       >
         {isCollapsed ? (
           <ChevronLeft className="h-4 w-4" />
