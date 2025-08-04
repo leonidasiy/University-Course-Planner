@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { setupStaticServing } from './static-serve.js';
 import scheduleRoutes from './routes/schedule.js';
+import majorRoutes from './routes/majors.js';
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api/schedule', scheduleRoutes);
+app.use('/api/majors', majorRoutes);
 
 // Test endpoint
 app.get('/api/hello', (req: express.Request, res: express.Response) => {

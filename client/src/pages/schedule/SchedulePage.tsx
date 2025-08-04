@@ -4,6 +4,7 @@ import { SemesterList } from './components/SemesterList';
 import { CourseLibrary } from './components/CourseLibrary';
 import { CourseSearch } from './components/CourseSearch';
 import { useSchedule } from './hooks/useSchedule';
+import { useMajorSettings } from './hooks/useMajorSettings';
 
 export function SchedulePage() {
   const {
@@ -44,6 +45,17 @@ export function SchedulePage() {
     completedCredits,
     requirementCredits
   } = useSchedule();
+
+  const {
+    majors,
+    isLoading: majorSettingsLoading,
+    updateMajor,
+    addMajor,
+    removeMajor,
+    reorderMajors,
+    getMajorColor,
+    getMajorName
+  } = useMajorSettings();
 
   const handleNavigateToSemester = (semesterId: string) => {
     const semesterElement = document.querySelector(`[data-semester-id="${semesterId}"]`);
@@ -90,7 +102,7 @@ export function SchedulePage() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [availableCourses, semesters, selectAllCourses, clearSelection]);
 
-  if (isLoading) {
+  if (isLoading || majorSettingsLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -109,7 +121,12 @@ export function SchedulePage() {
         totalCredits={totalCredits}
         completedCredits={completedCredits}
         requirementCredits={requirementCredits}
+        majors={majors}
         onAddSemester={addSemester}
+        onUpdateMajor={updateMajor}
+        onAddMajor={addMajor}
+        onRemoveMajor={removeMajor}
+        onReorderMajors={reorderMajors}
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
@@ -118,6 +135,7 @@ export function SchedulePage() {
             semesters={semesters}
             availableCourses={availableCourses}
             selectedCourses={selectedCourses}
+            majors={majors}
             onSelect={handleCourseSelect}
             onSelectAll={selectAllCourses}
             onClearSelection={clearSelection}
@@ -145,12 +163,14 @@ export function SchedulePage() {
           <CourseSearch 
             onSearch={searchCourseInSemesters}
             onNavigateToSemester={handleNavigateToSemester}
+            majors={majors}
           />
           
           <CourseLibrary
             courses={availableCourses}
             semesters={semesters}
             selectedCourses={selectedCourses}
+            majors={majors}
             onSelect={handleCourseSelect}
             onSelectAll={selectAllCourses}
             onClearSelection={clearSelection}

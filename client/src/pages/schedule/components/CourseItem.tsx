@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Course, Semester } from '../types/schedule';
+import { Major } from '../types/major';
 import { GripVertical, X, Edit, Check, MapPin } from 'lucide-react';
 
 interface CourseItemProps {
@@ -27,6 +28,7 @@ interface CourseItemProps {
   onMoveToPosition?: (fromSemesterId: string, toSemesterId: string, courseId: string, position: number) => void;
   onMoveSelectedToPosition?: (fromSemesterId: string, toSemesterId: string, position: number) => void;
   semesterInfo?: Semester | null;
+  majors?: Major[];
 }
 
 export function CourseItem({ 
@@ -45,7 +47,8 @@ export function CourseItem({
   onInsertSelectedAtPosition,
   onMoveToPosition,
   onMoveSelectedToPosition,
-  semesterInfo
+  semesterInfo,
+  majors = []
 }: CourseItemProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [editingCourse, setEditingCourse] = React.useState<Course>(course);
@@ -262,8 +265,8 @@ export function CourseItem({
     setIsEditDialogOpen(false);
   };
 
-  const handleRequirementToggle = (requirement: 'DSCT' | 'COSC' | 'CCC') => {
-    if (editingCourse.majorRequirements.includes(requirement)) {
+  const handleRequirementToggle = (requirement: string) => {
+    if (editingCourse.majorRequirements.includes(requirement as any)) {
       setEditingCourse({
         ...editingCourse,
         majorRequirements: editingCourse.majorRequirements.filter(req => req !== requirement)
@@ -271,7 +274,7 @@ export function CourseItem({
     } else {
       setEditingCourse({
         ...editingCourse,
-        majorRequirements: [...editingCourse.majorRequirements, requirement]
+        majorRequirements: [...editingCourse.majorRequirements, requirement as any]
       });
     }
   };
@@ -279,6 +282,27 @@ export function CourseItem({
   const getMajorRequirementBadges = () => {
     if (course.majorRequirements.length === 0) return null;
     
+    // Use dynamic colors from majors if available
+    if (majors.length > 0) {
+      return course.majorRequirements.map((req) => {
+        const major = majors.find(m => m.id === req);
+        return (
+          <Badge 
+            key={req} 
+            variant="outline" 
+            style={major ? {
+              borderColor: major.color,
+              color: major.color,
+              backgroundColor: `${major.color}15`
+            } : undefined}
+          >
+            {req}
+          </Badge>
+        );
+      });
+    }
+    
+    // Fallback to static colors
     const colors = {
       DSCT: 'text-blue-600 border-blue-600 bg-blue-50',
       COSC: 'text-green-600 border-green-600 bg-green-50',
@@ -286,7 +310,7 @@ export function CourseItem({
     };
 
     return course.majorRequirements.map((req) => (
-      <Badge key={req} variant="outline" className={colors[req]}>
+      <Badge key={req} variant="outline" className={colors[req] || 'text-gray-600 border-gray-600'}>
         {req}
       </Badge>
     ));
@@ -317,6 +341,13 @@ export function CourseItem({
       return "Permanently delete course from database";
     }
   };
+
+  // Get available major options for editing
+  const availableMajorOptions = majors.length > 0 ? majors : [
+    { id: 'DSCT', name: 'Data Science & Technology', color: '#2563eb', display_order: 1 },
+    { id: 'COSC', name: 'Computer Science', color: '#16a34a', display_order: 2 },
+    { id: 'CCC', name: 'Common Core Courses', color: '#9333ea', display_order: 3 }
+  ];
 
   return (
     <>
@@ -490,16 +521,15 @@ export function CourseItem({
               <div>
                 <Label>Major Requirements</Label>
                 <div className="space-y-2 mt-2">
-                  {['DSCT', 'COSC', 'CCC'].map((req) => (
-                    <div key={req} className="flex items-center space-x-2">
+                  {availableMajorOptions.map((major) => (
+                    <div key={major.id} className="flex items-center space-x-2">
                       <Checkbox
-                        id={`edit-${req}`}
-                        checked={editingCourse.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')}
-                        onCheckedChange={() => handleRequirementToggle(req as 'DSCT' | 'COSC' | 'CCC')}
+                        id={`edit-${major.id}`}
+                        checked={editingCourse.majorRequirements.includes(major.id as any)}
+                        onCheckedChange={() => handleRequirementToggle(major.id)}
                       />
-                      <label htmlFor={`edit-${req}`} className="text-sm">
-                        {req} ({req === 'DSCT' ? 'Data Science and Technology' : 
-                               req === 'COSC' ? 'Computer Science' : 'Common Core Courses'})
+                      <label htmlFor={`edit-${major.id}`} className="text-sm">
+                        {major.id} ({major.name})
                       </label>
                     </div>
                   ))}

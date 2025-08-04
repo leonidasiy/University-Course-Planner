@@ -647,11 +647,12 @@ export function useSchedule() {
 
   const searchCourseInSemesters = (searchTerm: string) => {
     const results: Array<{semester: Semester, course: Course}> = [];
+    const lowerSearchTerm = searchTerm.toLowerCase();
     
     scheduleData.semesters.forEach(semester => {
       semester.courses.forEach(course => {
-        if (course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            course.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+        if (course.code.toLowerCase().includes(lowerSearchTerm) ||
+            course.name.toLowerCase().includes(lowerSearchTerm)) {
           results.push({ semester, course });
         }
       });
@@ -660,42 +661,63 @@ export function useSchedule() {
     return results;
   };
 
-  // Calculate totals using unique courses (avoid double counting)
-  const allCourses = React.useMemo(() => {
-    // Use availableCourses as the source of truth since it contains all courses
-    return scheduleData.availableCourses;
-  }, [scheduleData.availableCourses]);
-
+  // Calculate totals and requirement credits
   const totalCredits = React.useMemo(() => {
+    const allCourses = [...scheduleData.availableCourses];
+    scheduleData.semesters.forEach(semester => {
+      semester.courses.forEach(course => {
+        if (!allCourses.find(c => c.id === course.id)) {
+          allCourses.push(course);
+        }
+      });
+    });
+    
     return allCourses.reduce((sum, course) => sum + course.credits, 0);
-  }, [allCourses]);
+  }, [scheduleData]);
 
   const completedCredits = React.useMemo(() => {
+    const allCourses = [...scheduleData.availableCourses];
+    scheduleData.semesters.forEach(semester => {
+      semester.courses.forEach(course => {
+        if (!allCourses.find(c => c.id === course.id)) {
+          allCourses.push(course);
+        }
+      });
+    });
+    
     return allCourses
       .filter(course => course.isCompleted)
       .reduce((sum, course) => sum + course.credits, 0);
-  }, [allCourses]);
+  }, [scheduleData]);
 
   const requirementCredits = React.useMemo(() => {
-    const dsctCourses = allCourses.filter(course => course.majorRequirements.includes('DSCT'));
-    const coscCourses = allCourses.filter(course => course.majorRequirements.includes('COSC'));
-    const cccCourses = allCourses.filter(course => course.majorRequirements.includes('CCC'));
+    const allCourses = [...scheduleData.availableCourses];
+    scheduleData.semesters.forEach(semester => {
+      semester.courses.forEach(course => {
+        if (!allCourses.find(c => c.id === course.id)) {
+          allCourses.push(course);
+        }
+      });
+    });
 
-    return {
-      dsct: {
-        completed: dsctCourses.filter(course => course.isCompleted).reduce((sum, course) => sum + course.credits, 0),
-        total: dsctCourses.reduce((sum, course) => sum + course.credits, 0)
-      },
-      cosc: {
-        completed: coscCourses.filter(course => course.isCompleted).reduce((sum, course) => sum + course.credits, 0),
-        total: coscCourses.reduce((sum, course) => sum + course.credits, 0)
-      },
-      ccc: {
-        completed: cccCourses.filter(course => course.isCompleted).reduce((sum, course) => sum + course.credits, 0),
-        total: cccCourses.reduce((sum, course) => sum + course.credits, 0)
-      }
-    };
-  }, [allCourses]);
+    const requirements = ['DSCT', 'COSC', 'CCC'];
+    const result: { [key: string]: { completed: number; total: number } } = {};
+
+    requirements.forEach(req => {
+      const reqCourses = allCourses.filter(course => 
+        course.majorRequirements.includes(req as any)
+      );
+      
+      result[req] = {
+        completed: reqCourses
+          .filter(course => course.isCompleted)
+          .reduce((sum, course) => sum + course.credits, 0),
+        total: reqCourses.reduce((sum, course) => sum + course.credits, 0)
+      };
+    });
+
+    return result;
+  }, [scheduleData]);
 
   return {
     semesters: scheduleData.semesters,

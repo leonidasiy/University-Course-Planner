@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Filter, ChevronDown } from 'lucide-react';
+import { Major } from '../types/major';
 
 interface CourseFiltersProps {
   selectedRequirements: string[];
@@ -18,6 +19,7 @@ interface CourseFiltersProps {
   onShowCompletedChange: (show: boolean) => void;
   showIncomplete: boolean;
   onShowIncompleteChange: (show: boolean) => void;
+  majors?: Major[];
 }
 
 export function CourseFilters({
@@ -31,16 +33,32 @@ export function CourseFilters({
   showCompleted,
   onShowCompletedChange,
   showIncomplete,
-  onShowIncompleteChange
+  onShowIncompleteChange,
+  majors = []
 }: CourseFiltersProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const requirements = [
-    { id: 'DSCT', name: 'DSCT', color: 'text-blue-600 border-blue-600' },
-    { id: 'COSC', name: 'COSC', color: 'text-green-600 border-green-600' },
-    { id: 'CCC', name: 'CCC', color: 'text-purple-600 border-purple-600' },
-    { id: 'OTHER', name: 'Other', color: 'text-gray-600 border-gray-600' }
-  ];
+  // Create requirements list from majors prop or fallback to defaults
+  const requirements = React.useMemo(() => {
+    if (majors.length > 0) {
+      return [
+        ...majors.map(major => ({
+          id: major.id,
+          name: major.id,
+          color: `border-[${major.color}] text-[${major.color}]`
+        })),
+        { id: 'OTHER', name: 'Other', color: 'text-gray-600 border-gray-600' }
+      ];
+    }
+    
+    // Fallback to defaults
+    return [
+      { id: 'DSCT', name: 'DSCT', color: 'text-blue-600 border-blue-600' },
+      { id: 'COSC', name: 'COSC', color: 'text-green-600 border-green-600' },
+      { id: 'CCC', name: 'CCC', color: 'text-purple-600 border-purple-600' },
+      { id: 'OTHER', name: 'Other', color: 'text-gray-600 border-gray-600' }
+    ];
+  }, [majors]);
 
   const categories = [
     { id: 'Prerequisites', name: 'Prerequisites', color: 'text-orange-600 border-orange-600' },
@@ -132,7 +150,14 @@ export function CourseFilters({
                       onCheckedChange={() => handleRequirementToggle(req.id)}
                     />
                     <label htmlFor={req.id} className="text-sm">
-                      <Badge variant="outline" className={req.color}>
+                      <Badge 
+                        variant="outline" 
+                        className={req.color}
+                        style={majors.length > 0 && req.id !== 'OTHER' ? {
+                          borderColor: majors.find(m => m.id === req.id)?.color,
+                          color: majors.find(m => m.id === req.id)?.color
+                        } : undefined}
+                      >
                         {req.name}
                       </Badge>
                     </label>

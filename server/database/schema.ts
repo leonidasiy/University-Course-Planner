@@ -2,6 +2,7 @@ export interface Database {
   courses: CoursesTable;
   semesters: SemestersTable;
   semester_courses: SemesterCoursesTable;
+  major_settings: MajorSettingsTable;
 }
 
 export interface CoursesTable {
@@ -31,4 +32,13 @@ export interface SemesterCoursesTable {
   course_id: string;
   order_index: number;
   created_at: string;
+}
+
+export interface MajorSettingsTable {
+  id: string;
+  name: string;
+  color: string;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
 }

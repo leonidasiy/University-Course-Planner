@@ -5,13 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, MapPin, Navigation } from 'lucide-react';
 import { Course, Semester } from '../types/schedule';
+import { Major } from '../types/major';
 
 interface CourseSearchProps {
   onSearch: (searchTerm: string) => Array<{semester: Semester, course: Course}>;
   onNavigateToSemester?: (semesterId: string) => void;
+  majors?: Major[];
 }
 
-export function CourseSearch({ onSearch, onNavigateToSemester }: CourseSearchProps) {
+export function CourseSearch({ onSearch, onNavigateToSemester, majors = [] }: CourseSearchProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [searchResults, setSearchResults] = React.useState<Array<{semester: Semester, course: Course}>>([]);
 
@@ -48,6 +50,27 @@ export function CourseSearch({ onSearch, onNavigateToSemester }: CourseSearchPro
   const getMajorRequirementBadges = (course: Course) => {
     if (course.majorRequirements.length === 0) return null;
     
+    // Use dynamic colors from majors if available
+    if (majors.length > 0) {
+      return course.majorRequirements.map((req) => {
+        const major = majors.find(m => m.id === req);
+        return (
+          <Badge 
+            key={req} 
+            variant="outline" 
+            style={major ? {
+              borderColor: major.color,
+              color: major.color,
+              backgroundColor: `${major.color}15`
+            } : undefined}
+          >
+            {req}
+          </Badge>
+        );
+      });
+    }
+    
+    // Fallback to static colors
     const colors = {
       DSCT: 'text-blue-600 border-blue-600 bg-blue-50',
       COSC: 'text-green-600 border-green-600 bg-green-50',
@@ -55,7 +78,7 @@ export function CourseSearch({ onSearch, onNavigateToSemester }: CourseSearchPro
     };
 
     return course.majorRequirements.map((req) => (
-      <Badge key={req} variant="outline" className={colors[req]}>
+      <Badge key={req} variant="outline" className={colors[req] || 'text-gray-600 border-gray-600'}>
         {req}
       </Badge>
     ));
