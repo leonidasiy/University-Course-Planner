@@ -84,9 +84,11 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
   }
 
   return (
-    <div className={`fixed top-1/2 transform -translate-y-1/2 z-40 hidden lg:block transition-all duration-300 ${
-      isCollapsed ? 'right-0' : 'right-1'
-    }`}>
+    <div 
+      className={`fixed top-1/2 transform -translate-y-1/2 transition-all duration-300 hidden lg:block ${
+        isCollapsed ? 'right-0 z-10' : 'right-1 z-50'
+      }`}
+    >
       {/* Navigation Panel */}
       <Card 
         className={`shadow-lg border-2 transition-all duration-300 w-80 ${
@@ -147,18 +149,17 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
         </CardContent>
       </Card>
 
-      {/* Toggle Button - always visible and properly positioned */}
+      {/* Toggle Button - always visible with proper z-index */}
       <Button
         variant="outline"
         size="sm"
         onClick={toggleCollapsed}
-        className={`absolute top-0 h-8 w-8 p-0 shadow-md border-2 transition-all duration-300 ${
+        className={`absolute top-0 h-8 w-8 p-0 shadow-md border-2 transition-all duration-300 z-50 ${
           isCollapsed 
             ? 'right-0 rounded-l-md rounded-r-none border-r-0' 
             : 'right-full rounded-r-md rounded-l-none border-l-0'
         }`}
         title={isCollapsed ? 'Show semester navigation' : 'Hide semester navigation'}
-        style={{ zIndex: 50 }}
       >
         {isCollapsed ? (
           <ChevronLeft className="h-4 w-4" />
