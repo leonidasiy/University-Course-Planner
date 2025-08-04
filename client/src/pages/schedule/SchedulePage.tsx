@@ -3,6 +3,7 @@ import { ScheduleHeader } from './components/ScheduleHeader';
 import { SemesterList } from './components/SemesterList';
 import { CourseLibrary } from './components/CourseLibrary';
 import { CourseSearch } from './components/CourseSearch';
+import { SemesterQuickNav } from './components/SemesterQuickNav';
 import { useSchedule } from './hooks/useSchedule';
 import { useMajorSettings } from './hooks/useMajorSettings';
 
@@ -145,85 +146,92 @@ export function SchedulePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <ScheduleHeader
-        totalCredits={totalCredits}
-        completedCredits={completedCredits}
-        requirementCredits={requirementCredits}
-        majors={majors}
-        onAddSemester={addSemester}
-        onUpdateMajor={updateMajor}
-        onAddMajor={addMajor}
-        onRemoveMajor={removeMajor}
-        onReorderMajors={reorderMajors}
-      />
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-        <div className="lg:col-span-2">
-          <SemesterList
-            semesters={semesters}
-            availableCourses={availableCourses}
-            selectedCourses={selectedCourses}
-            majors={majors}
-            onSelect={handleCourseSelect}
-            onSelectAll={selectAllCourses}
-            onClearSelection={clearSelection}
-            onRemoveSemester={removeSemester}
-            onClearSemesterCourses={clearSemesterCourses}
-            onAddCourse={addCourseToSemester}
-            onInsertCourseAtPosition={insertCourseAtPosition}
-            onAddSelectedCourses={addSelectedCoursesToSemester}
-            onInsertSelectedCoursesAtPosition={insertSelectedCoursesAtPosition}
-            onRemoveCourse={removeCourseFromSemester}
-            onRemoveSelectedCourses={removeSelectedCoursesFromSemester}
-            onMoveCourse={moveCourse}
-            onMoveCourseToPosition={moveCourseToPosition}
-            onMoveSelectedCourses={moveSelectedCourses}
-            onMoveSelectedCoursesToPosition={moveSelectedCoursesToPosition}
-            onReorderCourses={reorderCoursesInSemester}
-            onToggleCompletion={toggleCourseCompletion}
-            onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
-            onUpdateSemesterName={updateSemesterName}
-            onUpdateCourse={updateCourse}
-          />
-        </div>
+    <>
+      <div className="container mx-auto px-4 py-8">
+        <ScheduleHeader
+          totalCredits={totalCredits}
+          completedCredits={completedCredits}
+          requirementCredits={requirementCredits}
+          majors={majors}
+          onAddSemester={addSemester}
+          onUpdateMajor={updateMajor}
+          onAddMajor={addMajor}
+          onRemoveMajor={removeMajor}
+          onReorderMajors={reorderMajors}
+        />
         
-        <div className="lg:col-span-1 space-y-6">
-          <CourseSearch 
-            onSearch={searchCourseInSemesters}
-            onNavigateToSemester={handleNavigateToSemester}
-            majors={majors}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+          <div className="lg:col-span-2">
+            <SemesterList
+              semesters={semesters}
+              availableCourses={availableCourses}
+              selectedCourses={selectedCourses}
+              majors={majors}
+              onSelect={handleCourseSelect}
+              onSelectAll={selectAllCourses}
+              onClearSelection={clearSelection}
+              onRemoveSemester={removeSemester}
+              onClearSemesterCourses={clearSemesterCourses}
+              onAddCourse={addCourseToSemester}
+              onInsertCourseAtPosition={insertCourseAtPosition}
+              onAddSelectedCourses={addSelectedCoursesToSemester}
+              onInsertSelectedCoursesAtPosition={insertSelectedCoursesAtPosition}
+              onRemoveCourse={removeCourseFromSemester}
+              onRemoveSelectedCourses={removeSelectedCoursesFromSemester}
+              onMoveCourse={moveCourse}
+              onMoveCourseToPosition={moveCourseToPosition}
+              onMoveSelectedCourses={moveSelectedCourses}
+              onMoveSelectedCoursesToPosition={moveSelectedCoursesToPosition}
+              onReorderCourses={reorderCoursesInSemester}
+              onToggleCompletion={toggleCourseCompletion}
+              onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
+              onUpdateSemesterName={updateSemesterName}
+              onUpdateCourse={updateCourse}
+            />
+          </div>
           
-          <CourseLibrary
-            courses={availableCourses}
-            semesters={semesters}
-            selectedCourses={selectedCourses}
-            majors={majors}
-            onSelect={handleCourseSelect}
-            onSelectAll={selectAllCourses}
-            onClearSelection={clearSelection}
-            onAddCourse={addCourseToLibrary}
-            onRemoveCourse={removeCourseFromLibrary}
-            onRemoveSelected={removeSelectedCoursesFromLibrary}
-            onToggleCompletion={toggleCourseCompletion}
-            onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
-            onUpdateCourse={updateCourse}
-            findCourseInSemesters={findCourseInSemesters}
-          />
-          
-          {selectedCourses.size > 0 && (
-            <div className="text-center text-sm text-muted-foreground">
-              <p>
-                {selectedCourses.size} course{selectedCourses.size !== 1 ? 's' : ''} selected
-              </p>
-              <p className="mt-1">
-                Keyboard shortcuts: Ctrl+A (select all), Ctrl+D (deselect all), Esc (clear selection)
-              </p>
-            </div>
-          )}
+          <div className="lg:col-span-1 space-y-6">
+            <CourseSearch 
+              onSearch={searchCourseInSemesters}
+              onNavigateToSemester={handleNavigateToSemester}
+              majors={majors}
+            />
+            
+            <CourseLibrary
+              courses={availableCourses}
+              semesters={semesters}
+              selectedCourses={selectedCourses}
+              majors={majors}
+              onSelect={handleCourseSelect}
+              onSelectAll={selectAllCourses}
+              onClearSelection={clearSelection}
+              onAddCourse={addCourseToLibrary}
+              onRemoveCourse={removeCourseFromLibrary}
+              onRemoveSelected={removeSelectedCoursesFromLibrary}
+              onToggleCompletion={toggleCourseCompletion}
+              onToggleSelectedCompletion={toggleSelectedCoursesCompletion}
+              onUpdateCourse={updateCourse}
+              findCourseInSemesters={findCourseInSemesters}
+            />
+            
+            {selectedCourses.size > 0 && (
+              <div className="text-center text-sm text-muted-foreground">
+                <p>
+                  {selectedCourses.size} course{selectedCourses.size !== 1 ? 's' : ''} selected
+                </p>
+                <p className="mt-1">
+                  Keyboard shortcuts: Ctrl+A (select all), Ctrl+D (deselect all), Esc (clear selection)
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      <SemesterQuickNav
+        semesters={semesters}
+        onNavigateToSemester={handleNavigateToSemester}
+      />
+    </>
   );
 }
