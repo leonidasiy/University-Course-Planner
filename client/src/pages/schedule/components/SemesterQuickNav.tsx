@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Semester } from '../types/schedule';
-import { Calendar, Leaf, Flower, Sun } from 'lucide-react';
+import { Calendar, Leaf, Flower, Sun, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface SemesterQuickNavProps {
   semesters: Semester[];
@@ -25,6 +25,7 @@ const getSemesterIcon = (type: string) => {
 
 export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQuickNavProps) {
   const [activeSemesterId, setActiveSemesterId] = React.useState<string | null>(null);
+  const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -74,17 +75,47 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
     onNavigateToSemester(semesterId);
   };
 
+  const toggleCollapsed = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   if (semesters.length === 0) {
     return null;
   }
 
   return (
-    <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-40 hidden lg:block">
-      <Card className="shadow-lg border-2">
-        <CardContent className="p-2">
-          <div className="space-y-1 max-h-[60vh] overflow-y-auto">
-            <div className="text-xs font-medium text-muted-foreground px-2 py-1">
-              Quick Nav
+    <div className="fixed right-2 top-1/2 transform -translate-y-1/2 z-40 hidden lg:block">
+      {/* Toggle Button */}
+      <div className={`transition-all duration-300 ${isCollapsed ? 'translate-x-0' : 'translate-x-[-12px]'}`}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleCollapsed}
+          className={`absolute top-0 h-8 w-8 p-0 shadow-md border-2 transition-all duration-300 ${
+            isCollapsed 
+              ? 'right-0 rounded-l-md rounded-r-none border-r-0' 
+              : 'right-full rounded-r-md rounded-l-none border-l-0'
+          }`}
+          title={isCollapsed ? 'Show semester navigation' : 'Hide semester navigation'}
+        >
+          {isCollapsed ? (
+            <ChevronLeft className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+
+      {/* Navigation Panel */}
+      <Card 
+        className={`shadow-lg border-2 transition-all duration-300 ${
+          isCollapsed ? 'translate-x-full opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'
+        }`}
+      >
+        <CardContent className="p-1">
+          <div className="space-y-1 max-h-[50vh] overflow-y-auto">
+            <div className="text-[10px] font-medium text-muted-foreground px-2 py-1 text-center">
+              Nav
             </div>
             {semesters.map((semester) => {
               const isActive = activeSemesterId === semester.id;
@@ -99,27 +130,29 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
                   onClick={() => handleSemesterClick(semester.id)}
-                  className={`w-full justify-start text-left h-auto p-2 ${
+                  className={`w-full justify-start text-left h-auto p-1.5 min-w-[120px] ${
                     isActive ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent'
                   }`}
                 >
                   <div className="w-full">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-1.5 mb-1">
                       {getSemesterIcon(semester.type)}
-                      <span className="text-xs font-medium truncate">
-                        {semester.name}
+                      <span className="text-[10px] font-medium truncate leading-tight">
+                        {semester.name.replace(/^(Fall|Spring|Summer|Winter)\s+/, (match) => 
+                          match.charAt(0).toUpperCase()
+                        )}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-[9px]">
                       <Badge 
                         variant="outline" 
-                        className={`text-[10px] px-1 py-0 ${
+                        className={`text-[8px] px-1 py-0 h-4 ${
                           isActive ? 'border-primary-foreground/20 text-primary-foreground' : ''
                         }`}
                       >
-                        {semester.courses.length} courses
+                        {semester.courses.length}
                       </Badge>
-                      <span className={`text-[10px] ${
+                      <span className={`text-[9px] ${
                         isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
                       }`}>
                         {completedCredits}/{totalCredits}
