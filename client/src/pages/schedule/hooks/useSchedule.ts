@@ -661,7 +661,7 @@ export function useSchedule() {
     return results;
   };
 
-  // Calculate totals and requirement credits
+  // Calculate totals and requirement credits dynamically based on available majors
   const totalCredits = React.useMemo(() => {
     const allCourses = [...scheduleData.availableCourses];
     scheduleData.semesters.forEach(semester => {
@@ -690,6 +690,9 @@ export function useSchedule() {
       .reduce((sum, course) => sum + course.credits, 0);
   }, [scheduleData]);
 
+  // This function now returns a dynamic object based on available courses
+  // The actual major requirement calculation will be done in the component level
+  // where the majors data is available
   const requirementCredits = React.useMemo(() => {
     const allCourses = [...scheduleData.availableCourses];
     scheduleData.semesters.forEach(semester => {
@@ -700,10 +703,11 @@ export function useSchedule() {
       });
     });
 
-    const requirements = ['DSCT', 'COSC', 'CCC'];
+    // Create a fallback for the default majors
+    const defaultRequirements = ['DSCT', 'COSC', 'CCC'];
     const result: { [key: string]: { completed: number; total: number } } = {};
 
-    requirements.forEach(req => {
+    defaultRequirements.forEach(req => {
       const reqCourses = allCourses.filter(course => 
         course.majorRequirements.includes(req as any)
       );

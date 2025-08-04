@@ -7,12 +7,14 @@ import { Combobox } from '@/components/ui/combobox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CourseItem } from './CourseItem';
 import { Semester, Course } from '../types/schedule';
+import { Major } from '../types/major';
 import { Trash2, Calendar, Sun, Flower, Leaf, Plus, Eraser, CheckSquare, Square, Check, X, Edit2 } from 'lucide-react';
 
 interface SemesterCardProps {
   semester: Semester;
   availableCourses: Course[];
   selectedCourses: Set<string>;
+  majors: Major[];
   onSelect: (courseId: string, isSelected: boolean) => void;
   onSelectAll: (courses: Course[]) => void;
   onClearSelection: () => void;
@@ -77,6 +79,7 @@ export function SemesterCard({
   semester,
   availableCourses,
   selectedCourses,
+  majors,
   onSelect,
   onSelectAll,
   onClearSelection,
@@ -118,27 +121,25 @@ export function SemesterCard({
     .filter(course => course.isCompleted)
     .reduce((sum, course) => sum + course.credits, 0);
   
-  // Calculate requirement credits for this semester only
-  const dsctCompletedCredits = semester.courses
-    .filter(course => course.isCompleted && course.majorRequirements.includes('DSCT'))
-    .reduce((sum, course) => sum + course.credits, 0);
-  const dsctTotalCredits = semester.courses
-    .filter(course => course.majorRequirements.includes('DSCT'))
-    .reduce((sum, course) => sum + course.credits, 0);
-
-  const coscCompletedCredits = semester.courses
-    .filter(course => course.isCompleted && course.majorRequirements.includes('COSC'))
-    .reduce((sum, course) => sum + course.credits, 0);
-  const coscTotalCredits = semester.courses
-    .filter(course => course.majorRequirements.includes('COSC'))
-    .reduce((sum, course) => sum + course.credits, 0);
-
-  const cccCompletedCredits = semester.courses
-    .filter(course => course.isCompleted && course.majorRequirements.includes('CCC'))
-    .reduce((sum, course) => sum + course.credits, 0);
-  const cccTotalCredits = semester.courses
-    .filter(course => course.majorRequirements.includes('CCC'))
-    .reduce((sum, course) => sum + course.credits, 0);
+  // Calculate requirement credits for this semester using dynamic majors
+  const getMajorCredits = React.useMemo(() => {
+    const majorCredits: { [majorId: string]: { completed: number; total: number } } = {};
+    
+    majors.forEach(major => {
+      const majorCourses = semester.courses.filter(course => 
+        course.majorRequirements.includes(major.id as any)
+      );
+      
+      majorCredits[major.id] = {
+        completed: majorCourses
+          .filter(course => course.isCompleted)
+          .reduce((sum, course) => sum + course.credits, 0),
+        total: majorCourses.reduce((sum, course) => sum + course.credits, 0)
+      };
+    });
+    
+    return majorCredits;
+  }, [semester.courses, majors]);
 
   const selectedCoursesInSemester = React.useMemo(() => {
     return semester.courses.filter(course => selectedCourses.has(course.id));
@@ -378,21 +379,24 @@ export function SemesterCard({
             <Badge variant="secondary">
               {completedCredits}/{totalCredits} credits
             </Badge>
-            {dsctTotalCredits > 0 && (
-              <Badge variant="outline" className="text-blue-600 border-blue-600">
-                {dsctCompletedCredits}/{dsctTotalCredits} DSCT
-              </Badge>
-            )}
-            {coscTotalCredits > 0 && (
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                {coscCompletedCredits}/{coscTotalCredits} COSC
-              </Badge>
-            )}
-            {cccTotalCredits > 0 && (
-              <Badge variant="outline" className="text-purple-600 border-purple-600">
-                {cccCompletedCredits}/{cccTotalCredits} CCC
-              </Badge>
-            )}
+            {majors.map(major => {
+              const credits = getMajorCredits[major.id];
+              if (!credits || credits.total === 0) return null;
+              
+              return (
+                <Badge 
+                  key={major.id}
+                  variant="outline" 
+                  style={{
+                    borderColor: major.color,
+                    color: major.color,
+                    backgroundColor: `${major.color}15`
+                  }}
+                >
+                  {credits.completed}/{credits.total} {major.id}
+                </Badge>
+              );
+            })}
             
             {semester.courses.length > 0 && (
               <Button
@@ -540,6 +544,7 @@ export function SemesterCard({
                   <div key={course.id} className="p-2 border-b last:border-b-0">
                     <CourseItem
                       course={course}
+                      majors={majors}
                       onAddToSemester={handleAddCourseFromSearch}
                     />
                   </div>
@@ -608,6 +613,7 @@ export function SemesterCard({
                 semesterId={semester.id}
                 courseIndex={index}
                 isSelected={selectedCourses.has(course.id)}
+                majors={majors}
                 onSelect={handleCourseSelect}
                 onRemove={onRemoveCourse}
                 onToggleCompletion={onToggleCompletion}

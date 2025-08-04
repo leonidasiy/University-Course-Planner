@@ -43,7 +43,7 @@ export function SchedulePage() {
     findCourseInSemesters,
     totalCredits,
     completedCredits,
-    requirementCredits
+    requirementCredits: basicRequirementCredits
   } = useSchedule();
 
   const {
@@ -56,6 +56,35 @@ export function SchedulePage() {
     getMajorColor,
     getMajorName
   } = useMajorSettings();
+
+  // Calculate requirement credits dynamically based on current majors
+  const requirementCredits = React.useMemo(() => {
+    const allCourses = [...availableCourses];
+    semesters.forEach(semester => {
+      semester.courses.forEach(course => {
+        if (!allCourses.find(c => c.id === course.id)) {
+          allCourses.push(course);
+        }
+      });
+    });
+
+    const result: { [key: string]: { completed: number; total: number } } = {};
+
+    majors.forEach(major => {
+      const majorCourses = allCourses.filter(course => 
+        course.majorRequirements.includes(major.id as any)
+      );
+      
+      result[major.id] = {
+        completed: majorCourses
+          .filter(course => course.isCompleted)
+          .reduce((sum, course) => sum + course.credits, 0),
+        total: majorCourses.reduce((sum, course) => sum + course.credits, 0)
+      };
+    });
+
+    return result;
+  }, [availableCourses, semesters, majors]);
 
   const handleNavigateToSemester = (semesterId: string) => {
     const semesterElement = document.querySelector(`[data-semester-id="${semesterId}"]`);

@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { SemesterCard } from './SemesterCard';
 import { Semester, Course } from '../types/schedule';
+import { Major } from '../types/major';
 
 interface SemesterListProps {
   semesters: Semester[];
   availableCourses: Course[];
   selectedCourses: Set<string>;
+  majors: Major[];
   onSelect: (courseId: string, isSelected: boolean) => void;
   onSelectAll: (courses: Course[]) => void;
   onClearSelection: () => void;
@@ -32,6 +34,7 @@ export function SemesterList({
   semesters,
   availableCourses,
   selectedCourses,
+  majors,
   onSelect,
   onSelectAll,
   onClearSelection,
@@ -72,6 +75,7 @@ export function SemesterList({
               semester={semester}
               availableCourses={availableCourses}
               selectedCourses={selectedCourses}
+              majors={majors}
               onSelect={onSelect}
               onSelectAll={onSelectAll}
               onClearSelection={onClearSelection}
