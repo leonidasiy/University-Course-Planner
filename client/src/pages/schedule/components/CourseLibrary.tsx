@@ -267,8 +267,8 @@ export function CourseLibrary({
         majors={majors}
       />
 
-      <Card className="flex flex-col">
-        <CardHeader className="flex-shrink-0 sticky top-[73px] z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <Card className="flex flex-col h-[600px]">
+        <CardHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Library className="h-5 w-5" />
@@ -443,7 +443,7 @@ export function CourseLibrary({
             </div>
           </div>
 
-          {/* Search Bar - now sticky with header */}
+          {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -465,8 +465,8 @@ export function CourseLibrary({
           </div>
         </CardHeader>
         
-        <CardContent className="flex-1 p-0 pt-6">
-          <div className="px-6 pb-6">
+        <CardContent className="flex-1 overflow-hidden p-0">
+          <div className="h-full overflow-y-auto px-6 pb-6">
             {filteredAndSortedCourses.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 {searchTerm ? 
