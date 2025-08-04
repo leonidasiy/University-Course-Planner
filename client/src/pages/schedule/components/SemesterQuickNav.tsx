@@ -25,7 +25,7 @@ const getSemesterIcon = (type: string) => {
 
 export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQuickNavProps) {
   const [activeSemesterId, setActiveSemesterId] = React.useState<string | null>(null);
-  const [isCollapsed, setIsCollapsed] = React.useState(false); // Start expanded
+  const [isCollapsed, setIsCollapsed] = React.useState(true); // Start collapsed
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -84,17 +84,17 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
   }
 
   return (
-    <div className="fixed right-2 top-1/2 transform -translate-y-1/2 z-40 hidden xl:block">
+    <div className="fixed right-2 top-1/2 transform -translate-y-1/2 z-40 hidden lg:block">
       {/* Navigation Panel */}
       <Card 
         className={`shadow-lg border-2 transition-all duration-300 ${
           isCollapsed ? 'translate-x-full opacity-0 pointer-events-none' : 'translate-x-0 opacity-100'
         }`}
       >
-        <CardContent className="p-2">
-          <div className="space-y-1 max-h-[60vh] overflow-y-auto">
-            <div className="text-xs font-medium text-muted-foreground px-2 py-1 text-center">
-              Quick Nav
+        <CardContent className="p-1.5">
+          <div className="space-y-1 max-h-[50vh] overflow-y-auto">
+            <div className="text-[10px] font-medium text-muted-foreground px-1 py-1 text-center">
+              Nav
             </div>
             {semesters.map((semester) => {
               const isActive = activeSemesterId === semester.id;
@@ -109,27 +109,27 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
                   onClick={() => handleSemesterClick(semester.id)}
-                  className={`w-full justify-start text-left h-auto p-2 min-w-[160px] ${
+                  className={`w-full justify-start text-left h-auto p-1.5 min-w-[120px] ${
                     isActive ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent'
                   }`}
                 >
                   <div className="w-full">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-1 mb-1">
                       {getSemesterIcon(semester.type)}
-                      <span className="text-sm font-medium truncate leading-tight">
+                      <span className="text-[11px] font-medium truncate leading-tight">
                         {semester.name}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-[9px]">
                       <Badge 
                         variant="outline" 
-                        className={`text-xs px-2 py-1 ${
+                        className={`text-[8px] px-1 py-0 h-3 ${
                           isActive ? 'border-primary-foreground/20 text-primary-foreground' : ''
                         }`}
                       >
-                        {semester.courses.length} courses
+                        {semester.courses.length}
                       </Badge>
-                      <span className={`text-xs ${
+                      <span className={`text-[9px] ${
                         isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
                       }`}>
                         {completedCredits}/{totalCredits}
@@ -143,26 +143,24 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
         </CardContent>
       </Card>
 
-      {/* Toggle Button - positioned on the right side */}
-      <div className={`transition-all duration-300 ${isCollapsed ? 'translate-x-0' : 'translate-x-[12px]'}`}>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleCollapsed}
-          className={`absolute top-0 h-8 w-8 p-0 shadow-md border-2 transition-all duration-300 ${
-            isCollapsed 
-              ? 'left-full rounded-r-md rounded-l-none border-l-0' 
-              : 'left-0 rounded-l-md rounded-r-none border-r-0'
-          }`}
-          title={isCollapsed ? 'Show semester navigation' : 'Hide semester navigation'}
-        >
-          {isCollapsed ? (
-            <ChevronLeft className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
+      {/* Toggle Button - always visible on the right side */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={toggleCollapsed}
+        className={`absolute top-0 h-8 w-8 p-0 shadow-md border-2 transition-all duration-300 ${
+          isCollapsed 
+            ? 'right-0 rounded-l-md rounded-r-none border-r-0' 
+            : 'right-full rounded-r-md rounded-l-none border-l-0'
+        }`}
+        title={isCollapsed ? 'Show semester navigation' : 'Hide semester navigation'}
+      >
+        {isCollapsed ? (
+          <ChevronLeft className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
+      </Button>
     </div>
   );
 }
