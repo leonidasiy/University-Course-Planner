@@ -38,22 +38,13 @@ export function CourseFilters({
 }: CourseFiltersProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Create requirements list dynamically from majors prop
+  // Create requirements list from majors prop (no "Other" option)
   const requirements = React.useMemo(() => {
-    const result = majors.map(major => ({
+    return majors.map(major => ({
       id: major.id,
       name: major.name,
       color: major.color
     }));
-    
-    // Add "Other" option for courses with no major requirements
-    result.push({ 
-      id: 'OTHER', 
-      name: 'Other (No Major)', 
-      color: '#6b7280' 
-    });
-    
-    return result;
   }, [majors]);
 
   const categories = [
@@ -155,7 +146,7 @@ export function CourseFilters({
                           backgroundColor: `${req.color}15`
                         }}
                       >
-                        {req.id === 'OTHER' ? req.name : `${req.id} - ${req.name}`}
+                        {req.id} - {req.name}
                       </Badge>
                     </label>
                   </div>
