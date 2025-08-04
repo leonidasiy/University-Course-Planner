@@ -10,12 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CourseItem } from './CourseItem';
 import { CourseFilters } from './CourseFilters';
 import { Course, Semester } from '../types/schedule';
+import { Major } from '../types/major';
 import { Plus, Library, Trash2, CheckSquare, Square, Check, X, Search, AlertTriangle } from 'lucide-react';
 
 interface CourseLibraryProps {
   courses: Course[];
   semesters: Semester[];
   selectedCourses: Set<string>;
+  majors: Major[];
   onSelect: (courseId: string, isSelected: boolean) => void;
   onSelectAll: (courses: Course[]) => void;
   onClearSelection: () => void;
@@ -28,18 +30,22 @@ interface CourseLibraryProps {
   findCourseInSemesters: (courseId: string) => Semester | null;
 }
 
-// Define the sorting priority for course requirements
-const getRequirementPriority = (course: Course): number => {
-  if (course.majorRequirements.includes('DSCT')) return 1;
-  if (course.majorRequirements.includes('COSC')) return 2;
-  if (course.majorRequirements.includes('CCC')) return 3;
-  return 4; // Other/No requirements
+// Define the sorting priority for course requirements - now dynamic based on majors
+const getRequirementPriority = (course: Course, majors: Major[]): number => {
+  // Find the first major requirement that matches our majors list
+  for (let i = 0; i < majors.length; i++) {
+    if (course.majorRequirements.includes(majors[i].id)) {
+      return i + 1; // Priority based on display order
+    }
+  }
+  return majors.length + 1; // Other/No requirements get lowest priority
 };
 
 export function CourseLibrary({ 
   courses, 
   semesters,
   selectedCourses,
+  majors,
   onSelect,
   onSelectAll,
   onClearSelection,
@@ -65,7 +71,7 @@ export function CourseLibrary({
     code: '',
     name: '',
     credits: 3,
-    majorRequirements: [] as ('DSCT' | 'COSC' | 'CCC')[],
+    majorRequirements: [] as string[],
     isCompleted: false,
     category: 'Major Requirements' as 'Prerequisites' | 'Major Requirements' | 'Electives'
   });
@@ -94,7 +100,7 @@ export function CourseLibrary({
     }
   };
 
-  const handleRequirementToggle = (requirement: 'DSCT' | 'COSC' | 'CCC') => {
+  const handleRequirementToggle = (requirement: string) => {
     if (newCourse.majorRequirements.includes(requirement)) {
       setNewCourse({
         ...newCourse,
@@ -154,7 +160,7 @@ export function CourseLibrary({
         if (selectedRequirements.includes('OTHER') && course.majorRequirements.length === 0) {
           // Allow courses with no requirements if OTHER is selected
         } else if (!selectedRequirements.some(req => 
-          req !== 'OTHER' && course.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')
+          req !== 'OTHER' && course.majorRequirements.includes(req)
         )) {
           return false;
         }
@@ -182,8 +188,8 @@ export function CourseLibrary({
 
     // Sort courses by requirement priority, then alphabetically by code
     return filtered.sort((a, b) => {
-      const priorityA = getRequirementPriority(a);
-      const priorityB = getRequirementPriority(b);
+      const priorityA = getRequirementPriority(a, majors);
+      const priorityB = getRequirementPriority(b, majors);
       
       if (priorityA !== priorityB) {
         return priorityA - priorityB;
@@ -192,7 +198,7 @@ export function CourseLibrary({
       // If same priority, sort alphabetically by course code
       return a.code.localeCompare(b.code);
     });
-  }, [courses, selectedRequirements, selectedCategories, selectedSemesterFilters, showCompleted, showIncomplete, searchTerm, findCourseInSemesters]);
+  }, [courses, selectedRequirements, selectedCategories, selectedSemesterFilters, showCompleted, showIncomplete, searchTerm, findCourseInSemesters, majors]);
 
   const selectedCoursesInLibrary = React.useMemo(() => {
     return filteredAndSortedCourses.filter(course => selectedCourses.has(course.id));
@@ -258,6 +264,7 @@ export function CourseLibrary({
         onShowCompletedChange={setShowCompleted}
         showIncomplete={showIncomplete}
         onShowIncompleteChange={setShowIncomplete}
+        majors={majors}
       />
 
       <Card className="flex flex-col h-[600px]">
@@ -392,17 +399,25 @@ export function CourseLibrary({
                     </div>
                     <div>
                       <Label>Major Requirements (select multiple)</Label>
-                      <div className="space-y-2 mt-2">
-                        {['DSCT', 'COSC', 'CCC'].map((req) => (
-                          <div key={req} className="flex items-center space-x-2">
+                      <div className="space-y-2 mt-2 max-h-32 overflow-y-auto">
+                        {majors.map((major) => (
+                          <div key={major.id} className="flex items-center space-x-2">
                             <Checkbox
-                              id={`new-${req}`}
-                              checked={newCourse.majorRequirements.includes(req as 'DSCT' | 'COSC' | 'CCC')}
-                              onCheckedChange={() => handleRequirementToggle(req as 'DSCT' | 'COSC' | 'CCC')}
+                              id={`new-${major.id}`}
+                              checked={newCourse.majorRequirements.includes(major.id)}
+                              onCheckedChange={() => handleRequirementToggle(major.id)}
                             />
-                            <label htmlFor={`new-${req}`} className="text-sm">
-                              {req} ({req === 'DSCT' ? 'Data Science and Technology' : 
-                                     req === 'COSC' ? 'Computer Science' : 'Common Core Courses'})
+                            <label htmlFor={`new-${major.id}`} className="text-sm flex-1">
+                              <Badge 
+                                variant="outline"
+                                style={{
+                                  borderColor: major.color,
+                                  color: major.color,
+                                  backgroundColor: `${major.color}15`
+                                }}
+                              >
+                                {major.id} - {major.name}
+                              </Badge>
                             </label>
                           </div>
                         ))}
@@ -468,6 +483,7 @@ export function CourseLibrary({
                     key={course.id}
                     course={course}
                     isSelected={selectedCourses.has(course.id)}
+                    majors={majors}
                     onSelect={handleCourseSelect}
                     onRemoveFromLibrary={handleRemoveCourseFromLibrary}
                     onToggleCompletion={onToggleCompletion}

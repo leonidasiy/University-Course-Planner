@@ -3,7 +3,7 @@ export interface Course {
   code: string;
   name: string;
   credits: number;
-  majorRequirements: ('DSCT' | 'COSC' | 'CCC')[];
+  majorRequirements: string[]; // Changed from hardcoded union to dynamic string array
   isCompleted: boolean;
   category: 'Prerequisites' | 'Major Requirements' | 'Electives';
 }

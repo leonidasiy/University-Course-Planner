@@ -709,7 +709,7 @@ export function useSchedule() {
 
     defaultRequirements.forEach(req => {
       const reqCourses = allCourses.filter(course => 
-        course.majorRequirements.includes(req as any)
+        course.majorRequirements.includes(req)
       );
       
       result[req] = {

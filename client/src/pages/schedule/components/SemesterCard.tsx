@@ -127,7 +127,7 @@ export function SemesterCard({
     
     majors.forEach(major => {
       const majorCourses = semester.courses.filter(course => 
-        course.majorRequirements.includes(major.id as any)
+        course.majorRequirements.includes(major.id)
       );
       
       majorCredits[major.id] = {

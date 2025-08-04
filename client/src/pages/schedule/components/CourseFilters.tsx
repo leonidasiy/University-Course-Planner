@@ -38,41 +38,37 @@ export function CourseFilters({
 }: CourseFiltersProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Create requirements list from majors prop or fallback to defaults
+  // Create requirements list dynamically from majors prop
   const requirements = React.useMemo(() => {
-    if (majors.length > 0) {
-      return [
-        ...majors.map(major => ({
-          id: major.id,
-          name: major.id,
-          color: `border-[${major.color}] text-[${major.color}]`
-        })),
-        { id: 'OTHER', name: 'Other', color: 'text-gray-600 border-gray-600' }
-      ];
-    }
+    const result = majors.map(major => ({
+      id: major.id,
+      name: major.name,
+      color: major.color
+    }));
     
-    // Fallback to defaults
-    return [
-      { id: 'DSCT', name: 'DSCT', color: 'text-blue-600 border-blue-600' },
-      { id: 'COSC', name: 'COSC', color: 'text-green-600 border-green-600' },
-      { id: 'CCC', name: 'CCC', color: 'text-purple-600 border-purple-600' },
-      { id: 'OTHER', name: 'Other', color: 'text-gray-600 border-gray-600' }
-    ];
+    // Add "Other" option for courses with no major requirements
+    result.push({ 
+      id: 'OTHER', 
+      name: 'Other (No Major)', 
+      color: '#6b7280' 
+    });
+    
+    return result;
   }, [majors]);
 
   const categories = [
-    { id: 'Prerequisites', name: 'Prerequisites', color: 'text-orange-600 border-orange-600' },
-    { id: 'Major Requirements', name: 'Major Requirements', color: 'text-red-600 border-red-600' },
-    { id: 'Electives', name: 'Electives', color: 'text-indigo-600 border-indigo-600' }
+    { id: 'Prerequisites', name: 'Prerequisites', color: '#f97316' },
+    { id: 'Major Requirements', name: 'Major Requirements', color: '#ef4444' },
+    { id: 'Electives', name: 'Electives', color: '#6366f1' }
   ];
 
   const semesterOptions = [
     ...availableSemesters.map(sem => ({
       id: sem.id,
       name: sem.name,
-      color: 'text-green-600 border-green-600'
+      color: '#22c55e'
     })),
-    { id: 'CREDIT_ONLY', name: 'Credit Only', color: 'text-gray-600 border-gray-600' }
+    { id: 'CREDIT_ONLY', name: 'Credit Only', color: '#6b7280' }
   ];
 
   const handleRequirementToggle = (requirementId: string) => {
@@ -149,16 +145,16 @@ export function CourseFilters({
                       checked={selectedRequirements.includes(req.id)}
                       onCheckedChange={() => handleRequirementToggle(req.id)}
                     />
-                    <label htmlFor={req.id} className="text-sm">
+                    <label htmlFor={req.id} className="text-sm flex-1">
                       <Badge 
                         variant="outline" 
-                        className={req.color}
-                        style={majors.length > 0 && req.id !== 'OTHER' ? {
-                          borderColor: majors.find(m => m.id === req.id)?.color,
-                          color: majors.find(m => m.id === req.id)?.color
-                        } : undefined}
+                        style={{
+                          borderColor: req.color,
+                          color: req.color,
+                          backgroundColor: `${req.color}15`
+                        }}
                       >
-                        {req.name}
+                        {req.id === 'OTHER' ? req.name : `${req.id} - ${req.name}`}
                       </Badge>
                     </label>
                   </div>
@@ -177,7 +173,14 @@ export function CourseFilters({
                       onCheckedChange={() => handleCategoryToggle(category.id)}
                     />
                     <label htmlFor={category.id} className="text-sm">
-                      <Badge variant="outline" className={category.color}>
+                      <Badge 
+                        variant="outline" 
+                        style={{
+                          borderColor: category.color,
+                          color: category.color,
+                          backgroundColor: `${category.color}15`
+                        }}
+                      >
                         {category.name}
                       </Badge>
                     </label>
@@ -223,7 +226,14 @@ export function CourseFilters({
                       onCheckedChange={() => handleSemesterToggle(semester.id)}
                     />
                     <label htmlFor={`semester-${semester.id}`} className="text-sm">
-                      <Badge variant="outline" className={semester.color}>
+                      <Badge 
+                        variant="outline" 
+                        style={{
+                          borderColor: semester.color,
+                          color: semester.color,
+                          backgroundColor: `${semester.color}15`
+                        }}
+                      >
                         {semester.name}
                       </Badge>
                     </label>
