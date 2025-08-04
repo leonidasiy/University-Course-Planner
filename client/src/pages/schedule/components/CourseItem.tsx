@@ -298,7 +298,7 @@ export function CourseItem({
             backgroundColor: '#6b728015'
           }}
         >
-          {major ? `${req} - ${major.name}` : req}
+          {req}
         </Badge>
       );
     });
@@ -308,10 +308,11 @@ export function CourseItem({
     const colors = {
       Prerequisites: { color: '#f97316', bg: '#f9731615' },
       'Major Requirements': { color: '#ef4444', bg: '#ef444415' },
-      Electives: { color: '#6366f1', bg: '#6366f115' }
+      Electives: { color: '#6366f1', bg: '#6366f115' },
+      Other: { color: '#6b7280', bg: '#6b728015' }
     };
 
-    const colorConfig = colors[course.category];
+    const colorConfig = colors[course.category] || colors.Other;
 
     return (
       <Badge 
@@ -501,7 +502,7 @@ export function CourseItem({
                 <Label>Category</Label>
                 <Select 
                   value={editingCourse.category} 
-                  onValueChange={(value: 'Prerequisites' | 'Major Requirements' | 'Electives') => 
+                  onValueChange={(value: 'Prerequisites' | 'Major Requirements' | 'Electives' | 'Other') => 
                     setEditingCourse({ ...editingCourse, category: value })
                   }
                 >
@@ -512,6 +513,7 @@ export function CourseItem({
                     <SelectItem value="Prerequisites">Prerequisites</SelectItem>
                     <SelectItem value="Major Requirements">Major Requirements</SelectItem>
                     <SelectItem value="Electives">Electives</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

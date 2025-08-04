@@ -73,7 +73,7 @@ export function CourseLibrary({
     credits: 3,
     majorRequirements: [] as string[],
     isCompleted: false,
-    category: 'Major Requirements' as 'Prerequisites' | 'Major Requirements' | 'Electives'
+    category: 'Major Requirements' as 'Prerequisites' | 'Major Requirements' | 'Electives' | 'Other'
   });
 
   const handleAddCourse = () => {
@@ -383,7 +383,7 @@ export function CourseLibrary({
                       <Label>Category</Label>
                       <Select 
                         value={newCourse.category} 
-                        onValueChange={(value: 'Prerequisites' | 'Major Requirements' | 'Electives') => 
+                        onValueChange={(value: 'Prerequisites' | 'Major Requirements' | 'Electives' | 'Other') => 
                           setNewCourse({ ...newCourse, category: value })
                         }
                       >
@@ -394,6 +394,7 @@ export function CourseLibrary({
                           <SelectItem value="Prerequisites">Prerequisites</SelectItem>
                           <SelectItem value="Major Requirements">Major Requirements</SelectItem>
                           <SelectItem value="Electives">Electives</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

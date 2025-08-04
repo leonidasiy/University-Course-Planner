@@ -59,7 +59,8 @@ export function CourseFilters({
   const categories = [
     { id: 'Prerequisites', name: 'Prerequisites', color: '#f97316' },
     { id: 'Major Requirements', name: 'Major Requirements', color: '#ef4444' },
-    { id: 'Electives', name: 'Electives', color: '#6366f1' }
+    { id: 'Electives', name: 'Electives', color: '#6366f1' },
+    { id: 'Other', name: 'Other', color: '#6b7280' }
   ];
 
   const semesterOptions = [
