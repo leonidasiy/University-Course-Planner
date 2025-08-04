@@ -84,7 +84,7 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
   }
 
   return (
-    <div className="fixed right-2 top-1/2 transform -translate-y-1/2 z-40 hidden lg:block">
+    <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-40 hidden xl:block">
       {/* Toggle Button */}
       <div className={`transition-all duration-300 ${isCollapsed ? 'translate-x-0' : 'translate-x-[-12px]'}`}>
         <Button
@@ -115,7 +115,7 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
         <CardContent className="p-1">
           <div className="space-y-1 max-h-[50vh] overflow-y-auto">
             <div className="text-[10px] font-medium text-muted-foreground px-2 py-1 text-center">
-              Nav
+              Quick Nav
             </div>
             {semesters.map((semester) => {
               const isActive = activeSemesterId === semester.id;
@@ -130,17 +130,15 @@ export function SemesterQuickNav({ semesters, onNavigateToSemester }: SemesterQu
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
                   onClick={() => handleSemesterClick(semester.id)}
-                  className={`w-full justify-start text-left h-auto p-1.5 min-w-[120px] ${
+                  className={`w-full justify-start text-left h-auto p-1.5 min-w-[140px] ${
                     isActive ? 'bg-primary text-primary-foreground shadow-md' : 'hover:bg-accent'
                   }`}
                 >
                   <div className="w-full">
                     <div className="flex items-center gap-1.5 mb-1">
                       {getSemesterIcon(semester.type)}
-                      <span className="text-[10px] font-medium truncate leading-tight">
-                        {semester.name.replace(/^(Fall|Spring|Summer|Winter)\s+/, (match) => 
-                          match.charAt(0).toUpperCase()
-                        )}
+                      <span className="text-[11px] font-medium truncate leading-tight">
+                        {semester.name}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[9px]">
