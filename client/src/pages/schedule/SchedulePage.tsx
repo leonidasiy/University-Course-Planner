@@ -190,7 +190,7 @@ export function SchedulePage() {
             />
           </div>
           
-          <div className="lg:col-span-1 space-y-6" style={{ position: 'relative', top: 'auto' }}>
+          <div className="lg:col-span-1 space-y-6">
             <CourseSearch 
               onSearch={searchCourseInSemesters}
               onNavigateToSemester={handleNavigateToSemester}
