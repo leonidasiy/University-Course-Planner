@@ -17,12 +17,11 @@ export const db = new Kysely<DatabaseSchema>({
   dialect: new SqliteDialect({
     database: sqliteDb,
   }),
-  log: ['query', 'error']
+  log: ['error'],
 });
 
-// Test connection
 try {
-  db.selectFrom('courses').select('id').limit(1).execute();
+  sqliteDb.prepare('select 1').get();
   console.log('Database connection established successfully');
 } catch (error) {
   console.error('Database connection failed:', error);

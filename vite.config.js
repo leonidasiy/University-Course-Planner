@@ -63,14 +63,27 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
     },
     clearScreen: false,
+    optimizeDeps: {
+      include: [
+        'react',
+        'react-dom/client',
+        'react/jsx-dev-runtime',
+        'react-router-dom',
+        'lucide-react',
+      ],
+    },
     server: {
       hmr: {
         overlay: false,
       },
       host: true,
       port: vitePort,
+      strictPort: true,
       allowedHosts: true,
-      cors: true, // Enable CORS in the dev server
+      cors: true,
+      warmup: {
+        clientFiles: ['./index.html', './src/main.tsx', './src/**/*.tsx'],
+      },
       proxy: {
         '/api': {
           target: 'http://localhost:3001',
@@ -78,13 +91,8 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    // Enable source maps for development
     css: {
-      devSourcemap: true,
-    },
-    // Ensure source maps are properly generated
-    esbuild: {
-      sourcemap: true,
+      devSourcemap: false,
     },
   };
 });
