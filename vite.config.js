@@ -73,8 +73,10 @@ export default defineConfig(({ mode }) => {
       cors: true, // Enable CORS in the dev server
       proxy: {
         '/api': {
-          target: 'http://localhost:3001',
+          // Proxy to API server port used by dev script
+          target: 'http://localhost:3002',
           changeOrigin: true,
+          secure: false,
         },
       },
     },
