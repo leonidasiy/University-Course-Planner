@@ -24,21 +24,30 @@ app.get('/api/hello', (req: express.Request, res: express.Response) => {
 
 // Export a function to start the server
 export async function startServer(port) {
-  try {
-    if (process.env.NODE_ENV === 'production') {
-      setupStaticServing(app);
+  return new Promise((resolve, reject) => {
+    try {
+      if (process.env.NODE_ENV === 'production') {
+        setupStaticServing(app);
+      }
+
+      const server = app.listen(port, () => {
+        console.log(`API Server running on port ${port}`);
+        resolve(server);
+      });
+
+      server.on('error', (err) => {
+        console.error('API server failed to start:', err);
+        reject(err);
+      });
+    } catch (err) {
+      console.error('Failed to start server:', err);
+      process.exit(1);
     }
-    app.listen(port, () => {
-      console.log(`API Server running on port ${port}`);
-    });
-  } catch (err) {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  }
+  });
 }
 
 // Start the server directly if this is the main module
 if (import.meta.url === `file://${process.argv[1]}`) {
   console.log('Starting server...');
-  startServer(process.env.PORT || 3001);
+  startServer(process.env.PORT || 3002);
 }
